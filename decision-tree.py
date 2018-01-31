@@ -1,11 +1,11 @@
-import scipy.io as sio
+from scipy.io import loadmat
 import numpy as np
 from math import log
 
 def load_data(filename):
-    data = sio.loadmat(filename,squeeze_me=True)
+    data = loadmat(filename,squeeze_me=True)
     return data
- 
+
 def map_label(data, emotion):
     new_label = data.copy()
     for i in range(len(new_label)):
@@ -114,6 +114,7 @@ def decision_tree_learning(examples, attributes, binary_targets):
 
 def test_trees(T, features):
     while T.op != None:
+        print T.op
         T = T.kids[features[T.op]]
     return bool(T.label)
 
@@ -136,4 +137,6 @@ sadness_decision_tree = decision_tree_learning(data['x'], attributes, sadness_ta
 surprise_decision_tree = decision_tree_learning(data['x'], attributes, surprise_targets)
 
 #for i in data['x']:
-print test_trees(sadness_decision_tree, data['x'][0])
+print test_trees(sadness_decision_tree, data['x'][1])
+print data['x'][1]
+print data['y'][1]
