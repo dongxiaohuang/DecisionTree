@@ -118,8 +118,11 @@ def confusion_matrix(label_num, pre_act_class):
     # label number is the number of Classification
     # pre_act_class is a matrix that contain a column of predict Classification and a column of actual column
     resulut_matrix = np.zeros((label_num,label_num))
-
-    for index in range(le)
+    for index in range(len(pre_act_class[0])):
+        i = pre_act_class[1][index]
+        j = pre_act_class[0][index]
+        resulut_matrix[i][j] += 1
+    return resulut_matrix
 
 
 X, y = load_data("cleandata_students.mat")
@@ -139,7 +142,10 @@ happiness_decision_tree = decision_tree_learning(X, attributes, happiness_target
 sadness_decision_tree = decision_tree_learning(X, attributes, sadness_targets)
 surprise_decision_tree = decision_tree_learning(X, attributes, surprise_targets)
 
-# for i in X:
+for i in X:
 print test_trees(sadness_decision_tree, X[1])
 print X[1]
 print y[1]
+
+class1 = np.array([[0,1,2,0],[0,2,1,0]])
+print confusion_matrix(3,class1)
