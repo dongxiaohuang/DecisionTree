@@ -136,4 +136,4 @@ sadness_decision_tree = decision_tree_learning(data['x'], attributes, sadness_ta
 surprise_decision_tree = decision_tree_learning(data['x'], attributes, surprise_targets)
 
 #for i in data['x']:
-print test_trees(sadness_decision_tree, data['x'][0])
+print test_trees(sadness_decision_tree, data['x'][1])
