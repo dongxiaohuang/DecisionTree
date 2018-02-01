@@ -17,7 +17,7 @@ emotions = {'anger': 1,
 def map_label (labels, emotion):
     """Replace label with 1 or 0 if emotion is present or absent."""
     value = emotions.get(emotion, -1)
-    return np.array([1 if lab == value else 0 for lab in labels]) 
+    return np.array([1 if lab == value else 0 for lab in labels])
 
 def majority_value(binary_targets):
     count = 0
@@ -113,6 +113,14 @@ def test_trees(T, features):
         print T.op
         T = T.kids[features[T.op]]
     return bool(T.label)
+
+def confusion_matrix(label_num, pre_act_class):
+    # label number is the number of Classification
+    # pre_act_class is a matrix that contain a column of predict Classification and a column of actual column
+    resulut_matrix = np.zeros((label_num,label_num))
+
+    for index in range(le)
+
 
 X, y = load_data("cleandata_students.mat")
 attributes = list(xrange(45))
