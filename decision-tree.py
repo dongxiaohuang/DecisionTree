@@ -17,7 +17,7 @@ emotions = {'anger': 1,
 def map_label (labels, emotion):
     """Replace label with 1 or 0 if emotion is present or absent."""
     value = emotions.get(emotion, -1)
-    return np.array([1 if lab == value else 0 for lab in labels]) 
+    return np.array([1 if lab == value else 0 for lab in labels])
 
 def majority_value(binary_targets):
     count = 0
@@ -110,11 +110,24 @@ def decision_tree_learning(examples, attributes, binary_targets):
 
 def test_trees(T, features):
     while T.op != None:
-        print T.op
         T = T.kids[features[T.op]]
-    return bool(T.label)
+    return T.label
+
+def classify_emotion(examples):
+    result = [test_trees(anger_decision_tree, examples),
+              test_trees(disgust_decision_tree, examples),
+              test_trees(fear_decision_tree, examples),
+              test_trees(happiness_decision_tree, examples),
+              test_trees(sadness_decision_tree, examples),
+              test_trees(surprise_decision_tree, examples)]
+    for i in range(6):
+        if(result[i] == 1):
+            return i+1
+
+
 
 X, y = load_data("cleandata_students.mat")
+nx, ny = load_data("noisydata_students.mat")
 attributes = list(xrange(45))
 
 anger_targets     = map_label(y, "anger")
@@ -124,6 +137,8 @@ happiness_targets = map_label(y, "happiness")
 sadness_targets   = map_label(y, "sadness")
 surprise_targets  = map_label(y, "surprise")
 
+test = map_label(ny,"sadness")
+
 anger_decision_tree = decision_tree_learning(X, attributes, anger_targets)
 disgust_decision_tree = decision_tree_learning(X, attributes, disgust_targets)
 fear_decision_tree = decision_tree_learning(X, attributes, fear_targets)
@@ -131,7 +146,16 @@ happiness_decision_tree = decision_tree_learning(X, attributes, happiness_target
 sadness_decision_tree = decision_tree_learning(X, attributes, sadness_targets)
 surprise_decision_tree = decision_tree_learning(X, attributes, surprise_targets)
 
-# for i in X:
-print test_trees(sadness_decision_tree, X[1])
-print X[1]
-print y[1]
+
+# calculate the precision rate
+predictx =[]
+for i in nx:
+    ## TODO : fix bug
+    if(classify_emotion(i)==None):
+        predictx.append(0)
+    else:
+        predictx.append(classify_emotion(i))
+
+diff = (predictx - ny)
+print float(sum(x == 0 for x in diff))/len(diff)
+# print classify_emotion(nx[342]),ny[342]
