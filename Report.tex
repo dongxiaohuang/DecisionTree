@@ -1,0 +1,49 @@
+\documentclass[12pt, a4paper, portrait]{article}
+\usepackage[margin = 2cm]{geometry}
+% Vertical text spacing
+\parindent = 0cm \parskip = 0cm
+% Table spacing
+\newcommand\TS{\rule{0pt}{2.6ex}}         % Top strut
+\newcommand\BS{\rule[-0.9ex]{0pt}{0pt}}   % Bottom strut
+\usepackage{array}
+\newcolumntype{L}[1]{>{\raggedright\TS\BS\arraybackslash}m{#1}}   % Align left
+\newcolumntype{C}[1]{>{\centering  \TS\BS\arraybackslash}m{#1}}
+\newcolumntype{R}[1]{>{\raggedleft \TS\BS\arraybackslash}m{#1}}   % Align right
+
+\begin{document}
+
+\section*{Implementation}
+We select the best attribute at each node by computing its information gain, which is the decrease in entropy of the dataset after it has been split on that attribute.\par
+\bigskip
+Cross validation:\par
+1. Shuffle the dataset and split it into $K = 10$ parts\par
+2. For each $k \in \{1, \dots, K\}$ we train the decision tree on the dataset excluding part $k$ and then test the tree on part $k$.
+
+\section*{Evaluation}
+Confusion matrix:
+\begin{center}
+\begin{tabular} { C{0.7cm} | C{1cm} C{1cm} C{1cm} C{1cm} C{1cm} C{1cm} }
+    & 1 & 2 & 3 & 4 & 5 & 6 \\ \hline
+    1 &   &   &   &   &   &   \\
+    2 &   &   &   &   &   &   \\
+    3 &   &   &   &   &   &   \\
+    4 &   &   &   &   &   &   \\
+    5 &   &   &   &   &   &   \\
+    6 &   &   &   &   &   &
+\end{tabular}
+\end{center}
+
+\section*{Miscellaneous}
+
+\textit{Noisy-Clean Datasets Question}\par
+\bigskip
+The noisy dataset has lower performance.\par
+\bigskip
+
+\textit{Ambiguity Question}\par
+\bigskip
+
+\textit{Pruning Question}\par
+\bigskip
+
+\end{document}
