@@ -158,7 +158,6 @@ def decision_tree_learning(examples, attributes, binary_targets):
 def test_trees(T, features):
     while T.op != None:
         T = T.kids[features[T.op]]
-
     return T.label
 
 """
@@ -261,13 +260,8 @@ test = map_label(ny,"sadness")
 # diff = (predictx - ny)
 # print float(sum(x == 0 for x in diff))/len(diff)
 # print classify_emotion(nx[342]),ny[342]
-# for i in X:
-#     print test_trees(sadness_decision_tree, i)
+#for i in X:
+#print test_trees(sadness_decision_tree, X[1])
 
-class1 = np.array([[0,1,2,0,2,0,1],[0,2,1,0,2,2,0]])
-con_mat = confusion_matrix(3,class1)
-# print con_mat
-# print recall_precision_rates(3, con_mat)
-# result = recall_precision_rates(3, con_mat)
-# print fa_measure(1, 3, result)
-print ave_classfi_rate(3, con_mat)
+class1 = np.array([[0,1,2,0],[0,2,1,0]])
+print confusion_matrix(3,class1)
