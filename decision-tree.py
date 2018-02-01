@@ -80,7 +80,7 @@ def remainder (attribute, sum_pn, examples, binary_targets):
             else:
                 n0 += 1
    
-   return (p0+n0)/sum_pn * entropy(p0, n0) + (p1+n1)/sum_pn * entropy(p1, n1)
+    return (p0+n0)/sum_pn * entropy(p0, n0) + (p1+n1)/sum_pn * entropy(p1, n1)
 
 """
 """
@@ -92,7 +92,7 @@ def gain (attribute, examples, binary_targets):
         else:
             n += 1
    
-   return entropy(p, n) - remainder(attribute, p+n, examples, binary_targets)
+    return entropy(p, n) - remainder(attribute, p+n, examples, binary_targets)
 
 """
 """
@@ -103,7 +103,7 @@ def choose_best_attribute(examples, attributes, binary_targets):
         if temp_gain > best_gain:
             [best_gain, best] = [temp_gain, attribute]
    
-   return best
+    return best
 
 """
 """
@@ -127,7 +127,7 @@ def find_elements(examples, binary_targets, attribute, value):
             index.append(i)
             binary_targets_i = np.append(binary_targets_i, binary_targets[i])
    
-   return [examples[index, :], binary_targets_i]
+    return [examples[index, :], binary_targets_i]
 
 """
 """
@@ -154,7 +154,7 @@ def decision_tree_learning(examples, attributes, binary_targets):
                 subtree = decision_tree_learning(examples_i, new_attribute, binary_targets_i)
                 tree.add_kid(subtree)
    
-   return tree
+    return tree
 
 """
 """
@@ -162,7 +162,7 @@ def test_trees(T, features):
     while T.op != None:
         T = T.kids[features[T.op]]
    
-   return T.label
+    return T.label
 
 """
 """
@@ -221,9 +221,8 @@ for i in nx:
 diff = (predictx - ny)
 print float(sum(x == 0 for x in diff))/len(diff)
 # print classify_emotion(nx[342]),ny[342]
-for i in X:
-print test_trees(sadness_decision_tree, X[1])
-print X[1]
-print y[1]
+#for i in X:
+#print test_trees(sadness_decision_tree, X[1])
+
 class1 = np.array([[0,1,2,0],[0,2,1,0]])
 print confusion_matrix(3,class1)
