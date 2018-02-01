@@ -174,9 +174,9 @@ def classify_emotion(examples):
               test_trees(sadness_decision_tree, examples),
               test_trees(surprise_decision_tree, examples)]
     for i in range(6):
-        if(result[i] == 1):
+        if result[i] == 1:
             return i+1
-
+    return 1
 
 
 def confusion_matrix(label_num, pre_act_class):
@@ -213,16 +213,17 @@ surprise_decision_tree  = decision_tree_learning(X, attributes, surprise_targets
 # calculate the precision rate
 predictx =[]
 for i in nx:
-    ## TODO : fix bug
+    predictx.append(classify_emotion(i))
+    """## TODO : fix bug
     if(classify_emotion(i)==None):
         predictx.append(0)
     else:
         predictx.append(classify_emotion(i))
+    """
 diff = (predictx - ny)
 print float(sum(x == 0 for x in diff))/len(diff)
-# print classify_emotion(nx[342]),ny[342]
 #for i in X:
 #print test_trees(sadness_decision_tree, X[1])
 
-class1 = np.array([[0,1,2,0],[0,2,1,0]])
-print confusion_matrix(3,class1)
+#class1 = np.array([[0,1,2,0],[0,2,1,0]])
+#print confusion_matrix(3,class1)
