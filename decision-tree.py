@@ -79,8 +79,7 @@ def remainder (attribute, sum_pn, examples, binary_targets):
                 n1 += 1
             else:
                 n0 += 1
-   
-   return (p0+n0)/sum_pn * entropy(p0, n0) + (p1+n1)/sum_pn * entropy(p1, n1)
+    return (p0+n0)/sum_pn * entropy(p0, n0) + (p1+n1)/sum_pn * entropy(p1, n1)
 
 """
 """
@@ -91,8 +90,7 @@ def gain (attribute, examples, binary_targets):
             p += 1
         else:
             n += 1
-   
-   return entropy(p, n) - remainder(attribute, p+n, examples, binary_targets)
+    return entropy(p, n) - remainder(attribute, p+n, examples, binary_targets)
 
 """
 """
@@ -102,8 +100,7 @@ def choose_best_attribute(examples, attributes, binary_targets):
         temp_gain = gain(attribute, examples, binary_targets)
         if temp_gain > best_gain:
             [best_gain, best] = [temp_gain, attribute]
-   
-   return best
+    return best
 
 """
 """
@@ -126,8 +123,8 @@ def find_elements(examples, binary_targets, attribute, value):
         if examples[i, attribute] == value:
             index.append(i)
             binary_targets_i = np.append(binary_targets_i, binary_targets[i])
-   
-   return [examples[index, :], binary_targets_i]
+
+    return [examples[index, :], binary_targets_i]
 
 """
 """
@@ -153,16 +150,16 @@ def decision_tree_learning(examples, attributes, binary_targets):
                 new_attribute.remove(best_attribute)
                 subtree = decision_tree_learning(examples_i, new_attribute, binary_targets_i)
                 tree.add_kid(subtree)
-   
-   return tree
+
+    return tree
 
 """
 """
 def test_trees(T, features):
     while T.op != None:
         T = T.kids[features[T.op]]
-   
-   return T.label
+
+    return T.label
 
 """
 """
@@ -176,12 +173,16 @@ def classify_emotion(examples):
     for i in range(6):
         if(result[i] == 1):
             return i+1
-
-
-
+"""
+# function to compute a confusion matrix
+#
+# @param pre_act_class    - a matrix contains two rows:
+                            the first row is the predict class for examples;
+                            the second row is the actual Classification for examples;
+# @param label_num        - numbers of classification
+# @return                 - confusion matrix
+"""
 def confusion_matrix(label_num, pre_act_class):
-    # label number is the number of Classification
-    # pre_act_class is a matrix that contain a column of predict Classification and a column of actual column
     resulut_matrix = np.zeros((label_num,label_num))
     for index in range(len(pre_act_class[0])):
         i = pre_act_class[1][index]
@@ -189,7 +190,46 @@ def confusion_matrix(label_num, pre_act_class):
         resulut_matrix[i][j] += 1
     return resulut_matrix
 
+def recall_precision_rates(label_num, confusion_matrix):
+    res_rec_prec = []
+    for index in range(label_num):
+        recall_rate = get_recall_rate(confusion_matrix, index)
+        predict_rate = get_predict_rate(confusion_matrix, index)
+        res_rec_prec.append([recall_rate,predict_rate])
+    return res_rec_prec
 
+def get_recall_rate(confusion_matrix, index):
+    tp = confusion_matrix[index,index]
+    recall_rate = float(tp)/sum(confusion_matrix[index])
+    return recall_rate
+def get_predict_rate(confusion_matrix, index):
+    tp = confusion_matrix[index,index]
+    predict_rate = float(tp)/sum(confusion_matrix[:,index])
+    return predict_rate
+
+
+def fa_measure(a, label_num, res_rec_prec):
+    meas_rel = []
+    for index in range(label_num):
+        recall = res_rec_prec[index][0]
+        precision = res_rec_prec[index][1]
+        fa_i = (1.0+a)* (precision * recall) / (a * precision + recall)
+        meas_rel.append(fa_i)
+    return meas_rel
+
+def ave_classfi_rate(label_num, confusion_matrix):
+    dig_mat = np.diag(np.ones(label_num))
+    correct_class_num = sum(map(sum,dig_mat * confusion_matrix))
+    total_num = sum(map(sum,confusion_matrix))
+    return correct_class_num/ total_num
+
+
+
+
+"""
+---- test ----
+
+"""
 X, y = load_data("cleandata_students.mat")
 nx, ny = load_data("noisydata_students.mat")
 attributes = list(xrange(45))
@@ -202,28 +242,32 @@ sadness_targets     = map_label(y, "sadness")
 surprise_targets    = map_label(y, "surprise")
 
 test = map_label(ny,"sadness")
-
-anger_decision_tree     = decision_tree_learning(X, attributes, anger_targets)
-disgust_decision_tree   = decision_tree_learning(X, attributes, disgust_targets)
-fear_decision_tree      = decision_tree_learning(X, attributes, fear_targets)
-happiness_decision_tree = decision_tree_learning(X, attributes, happiness_targets)
-sadness_decision_tree   = decision_tree_learning(X, attributes, sadness_targets)
-surprise_decision_tree  = decision_tree_learning(X, attributes, surprise_targets)
+#
+# anger_decision_tree     = decision_tree_learning(X, attributes, anger_targets)
+# disgust_decision_tree   = decision_tree_learning(X, attributes, disgust_targets)
+# fear_decision_tree      = decision_tree_learning(X, attributes, fear_targets)
+# happiness_decision_tree = decision_tree_learning(X, attributes, happiness_targets)
+# sadness_decision_tree   = decision_tree_learning(X, attributes, sadness_targets)
+# surprise_decision_tree  = decision_tree_learning(X, attributes, surprise_targets)
 
 # calculate the precision rate
-predictx =[]
-for i in nx:
-    ## TODO : fix bug
-    if(classify_emotion(i)==None):
-        predictx.append(0)
-    else:
-        predictx.append(classify_emotion(i))
-diff = (predictx - ny)
-print float(sum(x == 0 for x in diff))/len(diff)
+# predictx =[]
+# for i in nx:
+#     ## TODO : fix bug
+#     if(classify_emotion(i)==None):
+#         predictx.append(0)
+#     else:
+#         predictx.append(classify_emotion(i))
+# diff = (predictx - ny)
+# print float(sum(x == 0 for x in diff))/len(diff)
 # print classify_emotion(nx[342]),ny[342]
-for i in X:
-print test_trees(sadness_decision_tree, X[1])
-print X[1]
-print y[1]
-class1 = np.array([[0,1,2,0],[0,2,1,0]])
-print confusion_matrix(3,class1)
+# for i in X:
+#     print test_trees(sadness_decision_tree, i)
+
+class1 = np.array([[0,1,2,0,2,0,1],[0,2,1,0,2,2,0]])
+con_mat = confusion_matrix(3,class1)
+# print con_mat
+# print recall_precision_rates(3, con_mat)
+# result = recall_precision_rates(3, con_mat)
+# print fa_measure(1, 3, result)
+print ave_classfi_rate(3, con_mat)
