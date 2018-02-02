@@ -173,7 +173,7 @@ def most_similar(T, features, labels):
             label, depth = test_single_tree(T[i], features)
             if label == 1: return i+1
     return labels.index(1) + 1
-        
+
 
 """
 """
@@ -181,17 +181,17 @@ def testTrees(T, x2):
     scores, labels = [], []
     for tree in T:
         label, depth = test_single_tree(tree, x2)
-# plan A         
+# plan A
         if label == 1: return T.index(tree) + 1
         labels.append(label)
         if label == 0: depth = 0
         scores.append(depth)
-# plan B    
+# plan B
     return highest_score(scores)
 
 # plan C
 """
-    if sum(labels) <= 1: 
+    if sum(labels) <= 1:
         return labels.index(sum(labels)) + 1
     else:
         for i in range(len(x2)):
@@ -286,7 +286,7 @@ surprise_decision_tree  = decision_tree_learning(vd, attributes, surprise_target
 
 # calculate the precision rate
 predictx =[]
-T = [anger_decision_tree, disgust_decision_tree, fear_decision_tree, 
+T = [anger_decision_tree, disgust_decision_tree, fear_decision_tree,
         happiness_decision_tree, sadness_decision_tree, surprise_decision_tree]
 for i in td:
     predictx.append(testTrees(T, i))
