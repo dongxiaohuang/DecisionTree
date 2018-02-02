@@ -263,7 +263,7 @@ def ave_classfi_rate(label_num, confusion_matrix):
     total_num = sum(map(sum,confusion_matrix))
     return correct_class_num/ total_num
 
-"""
+
 def n_fold(emotion, data, labels, n):
     targets = []
     length = len(data)/n
@@ -277,7 +277,6 @@ def n_fold(emotion, data, labels, n):
         sadness_targets     = map_label(test_set[0:len(X)*9/10], "sadness")
         surprise_targets    = map_label(test_set[0:len(X)*9/10], "surprise")
 
-"""
 
 
 """
@@ -295,7 +294,7 @@ happiness_targets   = map_label(y[0:len(X)*9/10], "happiness")
 sadness_targets     = map_label(y[0:len(X)*9/10], "sadness")
 surprise_targets    = map_label(y[0:len(X)*9/10], "surprise")
 
-test = map_label(ny,"sadness")
+test = map_label(ny,"happo")
 td = X[len(X)*9/10:len(X),:]
 vd = X[0:len(X)*9/10,:]
 anger_decision_tree     = decision_tree_learning(vd, attributes, anger_targets)
