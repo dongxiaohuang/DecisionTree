@@ -257,7 +257,7 @@ def fa_measure(a, label_num, res_rec_prec):
         meas_rel.append(fa_i)
     return meas_rel
 
-def ave_classfi_rate(label_num, confusion_matrix):
+def classfi_rate(label_num, confusion_matrix):
     dig_mat = np.diag(np.ones(label_num))
     correct_class_num = sum(map(sum,dig_mat * confusion_matrix))
     total_num = sum(map(sum,confusion_matrix))
@@ -267,15 +267,46 @@ def ave_classfi_rate(label_num, confusion_matrix):
 def n_fold(emotion, data, labels, n):
     targets = []
     length = len(data)/n
-    for x in range(n):
-        for e in emotions:
-            targets.append(map_label(labels[x*length:(x+1)*length], e))
+    avg_classfi_rate = 0
+    for i in range(n):
+        # the ith time
+        # divide the date into training_data, valification_data and testing_data
+        testing_data_index = i*n + range(length)
+        training_data_index = [index for index in range(len(data)) if index not in testing_data_index]
+        testing_data = data[testing_data_index]
+        result_test = [labels[i] for i in testing_data_index]
+        binary_targets_train = [labels[i] for i in training_data_index]
+        # trai&val_data_index = [index for index in range(len(data)) if index not in testing_data_index]
+        # trai&val_data = data[trai&val_data_index]
+        # valification_data = trai&val_data[0:length]
+        # _data = trai&val_data[length:]
+        training_data = data[training_data_index]
+        # using training_data to train tress
+        anger_targets       = map_label(binary_targets_train, "anger")
+        disgust_targets     = map_label(binary_targets_train, "disgust")
+        fear_targets        = map_label(binary_targets_train, "fear")
+        happiness_targets   = map_label(binary_targets_train, "happiness")
+        sadness_targets     = map_label(binary_targets_train, "sadness")
+        surprise_targets    = map_label(binary_targets_train, "surprise")
 
-        disgust_targets     = map_label(test_set[0:len(X)*9/10], "disgust")
-        fear_targets        = map_label(test_set[0:len(X)*9/10], "fear")
-        happiness_targets   = map_label(test_set[0:len(X)*9/10], "happiness")
-        sadness_targets     = map_label(test_set[0:len(X)*9/10], "sadness")
-        surprise_targets    = map_label(test_set[0:len(X)*9/10], "surprise")
+        attributes = range(len(data[0]))
+        anger_decision_tree     = decision_tree_learning(testing_data, attributes, anger_targets)
+        disgust_decision_tree   = decision_tree_learning(testing_data, attributes, disgust_targets)
+        fear_decision_tree      = decision_tree_learning(testing_data, attributes, fear_targets)
+        happiness_decision_tree = decision_tree_learning(testing_data, attributes, happiness_targets)
+        sadness_decision_tree   = decision_tree_learning(testing_data, attributes, sadness_targets)
+        surprise_decision_tree  = decision_tree_learning(testing_data, attributes, surprise_targets)
+
+        # calculate the precision rate
+        predictx =[]
+        T = [anger_decision_tree, disgust_decision_tree, fear_decision_tree,
+                happiness_decision_tree, sadness_decision_tree, surprise_decision_tree]
+        for data in testing_data:
+            predictx.append(testTrees(T, data))
+
+        con_mat = confusion_matrix(6, [predictx,result_test])
+        avg_classfi_rate += classfi_rate(6, conf_mat)
+        return avg_classfi_rate
 
 
 
