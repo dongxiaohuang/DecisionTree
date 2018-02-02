@@ -168,11 +168,18 @@ def highest_score(scores):
     return scores.index(max(scores)) + 1
 
 def most_similar(T, features, labels):
-    for i in range(len(labels)):
-        if labels[i] == 1:
-            label, depth = test_single_tree(T[i], features)
-            if label == 1: return i+1
-    return labels.index(1) + 1
+    if sum(labels) <= 1:
+        return labels.index(sum(labels)) + 1
+    scores = [0,0,0,0,0,0]
+    for i in range(len(features)):
+        if features[i] == 1:
+            features[i] = 0
+            for j in range(len(labels)):
+                if labels[j] == 1:
+                    new_label, depth = test_single_tree(T[j], features)
+                    scores[j] += new_label
+            features[i] = 1
+    return highest_score(scores)
         
 
 """
@@ -182,28 +189,15 @@ def testTrees(T, x2):
     for tree in T:
         label, depth = test_single_tree(tree, x2)
 # plan A         
-        if label == 1: return T.index(tree) + 1
+        #if label == 1: return T.index(tree) + 1
         labels.append(label)
         if label == 0: depth = 0
         scores.append(depth)
 # plan B    
-    return highest_score(scores)
+    #return highest_score(scores)
 
 # plan C
-"""
-    if sum(labels) <= 1: 
-        return labels.index(sum(labels)) + 1
-    else:
-        for i in range(len(x2)):
-            flag = True
-            if x2[i] == 1:
-                if flag:
-                    flag = False
-                else:
-                    x2[i] = 0
-                    break
-        return most_similar(T, x2, labels)
-"""
+    return most_similar(T, x2, labels)
 
 
 """
@@ -256,7 +250,21 @@ def ave_classfi_rate(label_num, confusion_matrix):
     total_num = sum(map(sum,confusion_matrix))
     return correct_class_num/ total_num
 
-
+"""
+def n_fold(emotion, data, labels, n):
+    targets = []
+    length = len(data)/n
+    for x in range(n):
+        for e in emotions:
+            targets.append(map_label(labels[x*length:(x+1)*length], e))
+        
+        disgust_targets     = map_label(test_set[0:len(X)*9/10], "disgust")
+        fear_targets        = map_label(test_set[0:len(X)*9/10], "fear")
+        happiness_targets   = map_label(test_set[0:len(X)*9/10], "happiness")
+        sadness_targets     = map_label(test_set[0:len(X)*9/10], "sadness")
+        surprise_targets    = map_label(test_set[0:len(X)*9/10], "surprise")
+        
+"""
 
 
 """
@@ -267,16 +275,16 @@ X, y = load_data("cleandata_students.mat")
 nx, ny = load_data("noisydata_students.mat")
 attributes = list(xrange(45))
 
-anger_targets       = map_label(y[len(X)/10:], "anger")
-disgust_targets     = map_label(y[len(X)/10:], "disgust")
-fear_targets        = map_label(y[len(X)/10:], "fear")
-happiness_targets   = map_label(y[len(X)/10:], "happiness")
-sadness_targets     = map_label(y[len(X)/10:], "sadness")
-surprise_targets    = map_label(y[len(X)/10:], "surprise")
+anger_targets       = map_label(y[0:len(X)*9/10], "anger")
+disgust_targets     = map_label(y[0:len(X)*9/10], "disgust")
+fear_targets        = map_label(y[0:len(X)*9/10], "fear")
+happiness_targets   = map_label(y[0:len(X)*9/10], "happiness")
+sadness_targets     = map_label(y[0:len(X)*9/10], "sadness")
+surprise_targets    = map_label(y[0:len(X)*9/10], "surprise")
 
 test = map_label(ny,"sadness")
-td = X[0:len(X)/10,:]
-vd = X[len(X)/10:,:]
+td = X[len(X)*9/10:len(X),:]
+vd = X[0:len(X)*9/10,:]
 anger_decision_tree     = decision_tree_learning(vd, attributes, anger_targets)
 disgust_decision_tree   = decision_tree_learning(vd, attributes, disgust_targets)
 fear_decision_tree      = decision_tree_learning(vd, attributes, fear_targets)
@@ -296,7 +304,7 @@ for i in td:
     else:
         predictx.append(classify_emotion(i))
     """
-diff = (predictx - y[0:len(X)/10])
+diff = (predictx - y[len(X)*9/10:len(X)])
 print float(sum(x == 0 for x in diff))/len(diff)
 # predictx =[]
 # for i in nx:
