@@ -9,11 +9,24 @@
 \newcolumntype{L}[1]{>{\raggedright\TS\BS\arraybackslash}m{#1}}   % Align left
 \newcolumntype{C}[1]{>{\centering  \TS\BS\arraybackslash}m{#1}}
 \newcolumntype{R}[1]{>{\raggedleft \TS\BS\arraybackslash}m{#1}}   % Align right
+% Equations
+\usepackage{amsmath, bm, bbold}
 
 \begin{document}
 
 \section*{Implementation}
-We select the best attribute at each node by computing its information gain, which is the decrease in entropy of the dataset after it has been split on that attribute.\par
+We select the best attribute at each node by computing its information gain, which is the decrease in entropy of the dataset after it has been split on that attribute.
+\[ \text{Gain(Attribute)} = I(p, n) - \left[ \frac{p_0 + n_0}{p + n} \, I(p_0, n_0) + \frac{p_1 + n_1}{p + n} \, I(p_1, n_1) \right] \]
+\begin{align*}
+    p &= \text{Number of positive examples before split} \\
+    n &= \text{Number of negative examples before split} \\
+    p_k &= \text{Number of positive examples with attribute} = k \\
+    n_k &= \text{Number of negative examples with attribute} = k \\
+    I(p, n) &= - \frac{p}{p+n} \log \frac{p}{p+n} - \frac{n}{p+n} \log \frac{n}{p+n}
+\end{align*}
+We could have used other metrics such as the Gini impurity:
+\[ I(p, n) = \frac{p}{p+n} \left( 1 - \frac{p}{p+n} \right) + \frac{n}{p+n} \left( 1 - \frac{n}{p+n} \right) \]
+which should give similar results to entropy since $-x \log x \approx x (1-x)$ when $x \approx 0$.\par
 \bigskip
 Cross validation:\par
 1. Shuffle the dataset and split it into $K = 10$ parts\par
@@ -22,16 +35,19 @@ Cross validation:\par
 \section*{Evaluation}
 Confusion matrix:
 \begin{center}
-\begin{tabular} { C{0.7cm} | C{1cm} C{1cm} C{1cm} C{1cm} C{1cm} C{1cm} }
-    & 1 & 2 & 3 & 4 & 5 & 6 \\ \hline
-    1 &   &   &   &   &   &   \\
-    2 &   &   &   &   &   &   \\
-    3 &   &   &   &   &   &   \\
-    4 &   &   &   &   &   &   \\
-    5 &   &   &   &   &   &   \\
-    6 &   &   &   &   &   &
+\begin{tabular} { C{1.7cm} | C{1.5cm} C{1.5cm} C{1.3cm} C{1.7cm} C{1.5cm} C{1.5cm} }
+    & Anger & Disgust & Fear & Happiness & Sadness & Surprise \\ \hline
+    Anger     &   &   &   &   &   &   \\
+    Disgust   &   &   &   &   &   &   \\
+    Fear      &   &   &   &   &   &   \\
+    Happiness &   &   &   &   &   &   \\
+    Sadness	  &   &   &   &   &   &   \\
+    Surprise  &   &   &   &   &   &
 \end{tabular}
 \end{center}
+Precision\par
+Recall\par
+$F_1$ score\par
 
 \section*{Miscellaneous}
 
