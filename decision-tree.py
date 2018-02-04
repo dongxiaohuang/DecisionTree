@@ -3,18 +3,16 @@ import numpy as np
 from math import log
 
 """
-# function to load data from a matlab file
-# the data contains a tuple of features and labels
-#
-# @param filename   - the path of the file
-# @return           - data of features, and data of labels
+Load data from a Matlab file
+The data contains a tuple of features and labels
+
+@param filename   - the path of the file
+@return           - tuple of (features, labels)
 """
 def load_data(filename):
     data = loadmat(filename, squeeze_me = True)
-
     return data['x'], data['y']
 
-#map emotions to labels
 emotions = {'anger'     : 1,
             'disgust'   : 2,
             'fear'      : 3,
@@ -23,43 +21,40 @@ emotions = {'anger'     : 1,
             'surprise'  : 6}
 
 """
-# function to replace label with 1 or 0 for emotion present or absent respectively
-#
-# @param labels     - a list of labels from 1 to 6
-# @param emotion    - the emotion to classify
-# @return           - a list of labels 1 or 0 for emotion present of absent
+Replace label with 1 or 0 if emotion is present or absent respectively
+
+@param labels    - list of labels from 1 to 6
+@param emotion   - the emotion to be classified
+@return          - list of labels 1 or 0 if emotion is present or absent
 """
 def map_label (labels, emotion):
     value = emotions.get(emotion, -1)
-
     return np.array([1 if lab == value else 0 for lab in labels])
 
 """
-# function to compute the majority value of a list
-#
-# @param binary_targets - a list with values 0 and 1
-# @return               - 0 if the number of 0 is more than that of 1
-                          1 if the number of 1 is more than that of 0
+Compute the majority value of a binary list
+
+@param binary_targets - list with values 0 and 1
+@return               - 0 if the number of 0's is more than that of 1's
+                        1 if the number of 1's is more than that of 0's
 """
 def majority_value(binary_targets):
     count = 0
     for item in binary_targets:
         count += 1 if item == 1 else -1
-
     return 1 if count > 0 else 0
 
 """
-# function to compute the entropy
-#
-# @param pos    - number of positive examples
-# @param neg    - number of negative examples
-# @return       - the entropy
+Compute entropy
+
+@param pos    - number of positive examples
+@param neg    - number of negative examples
+@return       - entropy
 """
 def entropy (pos, neg):
     if pos == 0 or neg == 0: return 0
     p = 1.0 * pos / (pos + neg)
     n = 1.0 * neg / (pos + neg)
-
     return - p * log(p, 2) - n * log(n, 2)
 
 """
@@ -118,12 +113,11 @@ class Node:
 """
 def find_elements(examples, binary_targets, attribute, value):
     index = []
-    binary_targets_i = np.array([], dtype=int)
+    binary_targets_i = np.array([], dtype = int)
     for i in range(binary_targets.shape[0]):
         if examples[i, attribute] == value:
             index.append(i)
             binary_targets_i = np.append(binary_targets_i, binary_targets[i])
-
     return [examples[index, :], binary_targets_i]
 
 """
@@ -150,7 +144,6 @@ def decision_tree_learning(examples, attributes, binary_targets):
                 new_attribute.remove(best_attribute)
                 subtree = decision_tree_learning(examples_i, new_attribute, binary_targets_i)
                 tree.add_kid(subtree)
-
     return tree
 
 """
@@ -160,7 +153,6 @@ def test_single_tree(tree, features):
     while tree.op != None:
         tree = tree.kids[features[tree.op]]
         depth += 1
-
     return tree.label, depth
 
 
@@ -180,7 +172,6 @@ def most_similar(T, features, labels):
                     scores[j] += new_label
             features[i] = 1
     return highest_score(scores)
-
 
 """
 """
@@ -214,15 +205,15 @@ def testTrees(T, x2):
 
 
 """
-# function to compute a confusion matrix
-#
-# @param pre_act_class    - a matrix contains two rows:
-                            the first row is the predict class for examples;
-                            the second row is the actual Classification for examples;
-# @param label_num        - numbers of classification
-# @return                 - confusion matrix
+Compute a confusion matrix
+
+@param pre_act_class    - Matrix with 2 rows:
+                          First row is the predict class for examples;
+                          Second row is the actual Classification for examples;
+@param label_num        - numbers of classification
+@return                 - confusion matrix
 """
-def confusion_matrix(label_num, pre_act_class):
+def confusion_matrix (label_num, pre_act_class):
     resulut_matrix = np.zeros((label_num,label_num))
     for index in range(len(pre_act_class[0])):
         i = pre_act_class[1][index] - 1
@@ -242,11 +233,11 @@ def get_recall_rate(confusion_matrix, index):
     tp = confusion_matrix[index,index]
     recall_rate = float(tp)/sum(confusion_matrix[index])
     return recall_rate
+
 def get_predict_rate(confusion_matrix, index):
     tp = confusion_matrix[index,index]
     predict_rate = float(tp)/sum(confusion_matrix[:,index])
     return predict_rate
-
 
 def fa_measure(a, label_num, res_rec_prec):
     meas_rel = []
@@ -308,20 +299,18 @@ def n_fold(data, labels, n):
         return avg_classfi_rate
 
 
+# --- Test ---
 
-"""
----- test ----
-
-"""
 X, y = load_data("cleandata_students.mat")
 nx, ny = load_data("noisydata_students.mat")
 attributes = list(xrange(45))
-anger_targets       = map_label(y[0:len(X)*9/10], "anger")
-disgust_targets     = map_label(y[0:len(X)*9/10], "disgust")
-fear_targets        = map_label(y[0:len(X)*9/10], "fear")
-happiness_targets   = map_label(y[0:len(X)*9/10], "happiness")
-sadness_targets     = map_label(y[0:len(X)*9/10], "sadness")
-surprise_targets    = map_label(y[0:len(X)*9/10], "surprise")
+
+anger_targets      = map_label(y[0:len(X)*9/10], "anger")
+disgust_targets    = map_label(y[0:len(X)*9/10], "disgust")
+fear_targets       = map_label(y[0:len(X)*9/10], "fear")
+happiness_targets  = map_label(y[0:len(X)*9/10], "happiness")
+sadness_targets    = map_label(y[0:len(X)*9/10], "sadness")
+surprise_targets   = map_label(y[0:len(X)*9/10], "surprise")
 
 test = map_label(ny,"happiness")
 td = X[len(X)*9/10:len(X),:]
