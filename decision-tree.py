@@ -6,7 +6,7 @@ from math import log
 Load data from a Matlab file
 The data contains a tuple of features and labels
 
-@param filename   - the path of the file
+@param filename   - file's path
 @return           - tuple of (features, labels)
 """
 def load_data(filename):
@@ -32,7 +32,7 @@ def map_label (labels, emotion):
     return np.array([1 if lab == value else 0 for lab in labels])
 
 """
-Compute the majority value of a binary list
+Find the majority value of a binary list
 
 @param binary_targets - list with values 0 and 1
 @return               - 0 if the number of 0's is more than that of 1's
@@ -58,11 +58,23 @@ def entropy (pos, neg):
     return - p * log(p, 2) - n * log(n, 2)
 
 """
+
+@param examples          - NumPy array with shape (N, P)
+@param binary_targets    - NumPy array of 0's and 1's with length N
 """
 def remainder (attribute, sum_pn, examples, binary_targets):
-    [p0, p1, n0, n1] = np.zeros(4, float)
-    if sum_pn == 0:
-        return 0
+    if sum_pn == 0: return 0
+"""
+Recommended change:
+
+    p0 = np.sum(examples[:, attribute] == 0 && binary_targets == 1)
+    p1 = np.sum(examples[:, attribute] == 1 && binary_targets == 1)
+    n0 = np.sum(examples[:, attribute] == 0 && binary_targets == 0)
+    n1 = np.sum(examples[:, attribute] == 1 && binary_targets == 0)
+    return (p0 + n0) / sum_pn * entropy(p0, n0) + (p1 + n1) / sum_pn * entropy(p1, n1)
+
+"""
+    p0 = p1 = n0 = n1 = 0.0
     for i in range(len(binary_targets)):
         if binary_targets[i] == 1:
             if examples[i, attribute] == 1:
@@ -214,29 +226,29 @@ Compute a confusion matrix
 @return                 - confusion matrix
 """
 def confusion_matrix (label_num, pre_act_class):
-    resulut_matrix = np.zeros((label_num,label_num))
+    confusion = np.zeros((label_num,label_num))
     for index in range(len(pre_act_class[0])):
         i = pre_act_class[1][index] - 1
         j = pre_act_class[0][index] - 1
-        resulut_matrix[i][j] += 1
-    return resulut_matrix
+        confusion[i][j] += 1
+    return confusion
 
 def recall_precision_rates(label_num, confusion_matrix):
     res_rec_prec = []
     for index in range(label_num):
         recall_rate = get_recall_rate(confusion_matrix, index)
         predict_rate = get_predict_rate(confusion_matrix, index)
-        res_rec_prec.append([recall_rate,predict_rate])
+        res_rec_prec.append([recall_rate, predict_rate])
     return res_rec_prec
 
 def get_recall_rate(confusion_matrix, index):
     tp = confusion_matrix[index,index]
-    recall_rate = float(tp)/sum(confusion_matrix[index])
+    recall_rate = 1.0 * tp /sum(confusion_matrix[index])
     return recall_rate
 
 def get_predict_rate(confusion_matrix, index):
     tp = confusion_matrix[index,index]
-    predict_rate = float(tp)/sum(confusion_matrix[:,index])
+    predict_rate = 1.0 * tp / sum(confusion_matrix[:,index])
     return predict_rate
 
 def fa_measure(a, label_num, res_rec_prec):
@@ -244,25 +256,25 @@ def fa_measure(a, label_num, res_rec_prec):
     for index in range(label_num):
         recall = res_rec_prec[index][0]
         precision = res_rec_prec[index][1]
-        fa_i = (1.0+a)* (precision * recall) / (a * precision + recall)
+        fa_i = (1.0 + a**2)* (precision * recall) / (a * precision + recall)
         meas_rel.append(fa_i)
     return meas_rel
 
 def classfi_rate(label_num, confusion_matrix):
     dig_mat = np.diag(np.ones(label_num))
-    correct_class_num = sum(map(sum,dig_mat * confusion_matrix))
-    total_num = sum(map(sum,confusion_matrix))
-    return correct_class_num/ total_num
+    correct_class_num = sum(map(sum, dig_mat * confusion_matrix))
+    total_num = sum(map(sum, confusion_matrix))
+    return correct_class_num / total_num
 
 
 def n_fold(data, labels, n):
     targets = []
-    length = len(data)/n
+    length = len(data) / n
     avg_classfi_rate = 0
     for i in range(n):
         # the ith time
         # divide the date into training_data, valification_data and testing_data
-        testing_data_index = [x+i*length for x in range(length)]
+        testing_data_index = [x + i*length for x in range(length)]
         training_data_index = [index for index in range(len(data)) if index not in testing_data_index]
         testing_data = data[testing_data_index]
         result_test = [labels[i] for i in testing_data_index]
