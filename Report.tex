@@ -1,5 +1,6 @@
 \documentclass[12pt, a4paper, portrait]{article}
 \usepackage[margin = 2cm]{geometry}
+\pagenumbering{gobble}
 % Vertical text spacing
 \parindent = 0cm \parskip = 0cm
 % Section
@@ -8,7 +9,7 @@
 % Table spacing
 \newcommand\TS{\rule{0pt}{2.6ex}}         % Top strut
 \newcommand\BS{\rule[-0.9ex]{0pt}{0pt}}   % Bottom strut
-\usepackage{array}
+\usepackage{array, multirow}
 \newcolumntype{L}[1]{>{\raggedright\TS\BS\arraybackslash}m{#1}}   % Align left
 \newcolumntype{C}[1]{>{\centering  \TS\BS\arraybackslash}m{#1}}
 \newcolumntype{R}[1]{>{\raggedleft \TS\BS\arraybackslash}m{#1}}   % Align right
@@ -16,20 +17,24 @@
 \usepackage{amsmath, bm, bbold, pgfplots}
 
 \begin{document}
-Dongxiao Huang, Zheng Xun Phang, Yufeng Zhang
+CO395 Group 57: Dongxiao Huang, Zheng Xun Phang, Yufeng Zhang
 \section*{Implementation}
-We select the best attribute at each node by computing its information gain, which is the decrease in entropy of the dataset after it has been split on that attribute.
+How do we select the best attribute at each node? For all attributes, we compute the information gain if the dataset is split on that attribute:
 \begin{align*}
-    \text{Gain(Attribute)} &= I(p, n) - \left[ \frac{p_0 + n_0}{p + n} \, I(p_0, n_0) + \frac{p_1 + n_1}{p + n} \, I(p_1, n_1) \right] \\[0.5ex]
-    p &= \text{Number of positive examples before split} \\
-    n &= \text{Number of negative examples before split} \\
+    \text{Gain(Attribute)} &= \mathcal{I}(p, n) - \left[ \frac{p_0 + n_0}{p + n} \, \mathcal{I}(p_0, n_0) + \frac{p_1 + n_1}{`p + n} \, \mathcal{I}(p_1, n_1) \right] \\[0.5ex]
     p_k &= \text{Number of positive examples with attribute} = k \\
     n_k &= \text{Number of negative examples with attribute} = k \\
-    I(p, n) &= - \frac{p}{p+n} \log \frac{p}{p+n} - \frac{n}{p+n} \log \frac{n}{p+n}
+    p &= p_0 + p_1 = \text{Number of positive examples before split} \\
+    n &= n_0 + n_1 = \text{Number of negative examples before split}
 \end{align*}
-We could have used another information metric such as the Gini impurity:
-\[ I(p, n) = \frac{p}{p+n} \left( 1 - \frac{p}{p+n} \right) + \frac{n}{p+n} \left( 1 - \frac{n}{p+n} \right) \]
-which should give similar results to entropy since their graphs have a similar shape:
+There are two common ways to measure information.
+\begin{flalign*}
+    &\text{Entropy:} & \mathcal{I}(p, n) &= - \frac{p}{p+n} \log \frac{p}{p+n} - \frac{n}{p+n} \log \frac{n}{p+n} &\\[0.5ex]
+    &\text{Gini impurity:} & \mathcal{I}(p, n) &= \frac{p}{p+n} \left( 1 - \frac{p}{p+n} \right) + \frac{n}{p+n} \left( 1 - \frac{n}{p+n} \right)
+\end{flalign*}
+with the condition $\mathcal{I}(u, 0) = \mathcal{I}(0, u) = 0$ for all $u > 0$.\par
+\bigskip
+We used entropy since it's stated in the specification, but Gini impurity is faster to compute. Both metrics should give similar results since their graphs have a similar shape:
 \begin{center}
 \begin{minipage} {0.45 \textwidth}
 \begin{tikzpicture} [xscale = 4, yscale = 4]
@@ -54,13 +59,14 @@ which should give similar results to entropy since their graphs have a similar s
 To evaluate our decision tree, we performed cross validation as follows:
 \begin{enumerate}
     \item Shuffle the dataset and split it into $K = 10$ parts
-    \item For each $k \in \{1, \dotsm, K\}$ we train the decision tree on the dataset \textbf{excluding} part $k$ and then test the decision tree on part $k$.
+    \item For each $k \in \{1, \dotsm, K\}$ we train the decision tree on the dataset \textit{excluding} part $k$ and then test the decision tree on part $k$. During testing, the relevant cells in the confusion matrix are incremented.
 \end{enumerate}
 
 \section*{Evaluation}
-Confusion matrix:
 \begin{center}
-\begin{tabular} { C{1.7cm} | C{1.5cm} C{1.5cm} C{1.3cm} C{1.7cm} C{1.5cm} C{1.5cm} }
+\begin{tabular} { C{1.8cm} | C{1.5cm} C{1.5cm} C{1.3cm} C{1.7cm} C{1.5cm} C{1.5cm} }
+    \multirow{2}{*}{Predicted} &
+    \multicolumn{6}{c}{Actual} \\
     & Anger & Disgust & Fear & Happiness & Sadness & Surprise \\ \hline
     Anger     &   &   &   &   &   &   \\
     Disgust   &   &   &   &   &   &   \\
@@ -70,9 +76,15 @@ Confusion matrix:
     Surprise  &   &   &   &   &   &
 \end{tabular}
 \end{center}
-Precision\par
-Recall\par
-$F_1$ score\par
+From the confusion matrix above, we can compute these summary statistics:
+\begin{center}
+\begin{tabular} { C{1.7cm} | C{1.5cm} C{1.5cm} C{1.3cm} C{1.7cm} C{1.5cm} C{1.5cm} }
+    & Anger & Disgust & Fear & Happiness & Sadness & Surprise \\ \hline
+    Precision   &   &   &   &   &   &   \\
+    Recall      &   &   &   &   &   &   \\
+    $F_1$ score &   &   &   &   &   &
+\end{tabular}
+\end{center}
 
 \section*{Miscellaneous}
 
