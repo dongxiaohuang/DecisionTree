@@ -136,20 +136,20 @@ def find_elements(examples, binary_targets, attribute, value):
 """
 def decision_tree_learning(examples, attributes, binary_targets):
     if len(set(binary_targets)) == 1:
-#       print "leaf"
+        #print "leaf"
         return Node(kids = [], label = binary_targets[0])
     elif not attributes:
-#       print "leaf"
+        #print "leaf"
         return Node(kids = [], label = majority_value(binary_targets))
     else:
         best_attribute = choose_best_attribute(examples, attributes, binary_targets)
-#       print best_attribute
+        #print best_attribute
         tree = Node(kids = [], op = best_attribute)
         for i in range(2):
-#           print "i =", i
+            #print "i =", i
             [examples_i, binary_targets_i] = find_elements(examples, binary_targets, best_attribute, i)
             if len(examples_i) == 0:
-#               print "leaf"
+                #print "leaf"
                 return Node(kids = [], label = majority_value(binary_targets))
             else:
                 new_attribute = list(attributes)
@@ -196,16 +196,17 @@ def testTrees(T, x2):
         scores, labels = [], []
         for tree in T:
             label, depth = test_single_tree(tree, x)
-            # plan A
-            if label == 1: depth = 1
             labels.append(label)
             if label == 0: depth = 0
             scores.append(depth)
+        # plan A
+        predictions.append(highest_score(labels))
+        
         # plan B
         #predictions.append(highest_score(scores))
 
         # plan C
-        predictions.append(most_similar(T, x, labels))
+        #predictions.append(most_similar(T, x, labels))
 
     return np.array(predictions)
 
@@ -278,13 +279,13 @@ def n_fold(data, labels, n):
         # valification_data = trai&val_data[0:length]
         # _data = trai&val_data[length:]
         # using training_data to train tress
-        
+
         targets = []
-        for e in emotions:
+        for j in range(len(emotions)):
+            e = emotions.keys()[emotions.values().index(j+1)]
             targets.append(map_label(binary_targets_train, e))
 
-        #attributes = range(len(data[0]))
-        attributes = list(xrange(45))
+        attributes = range(len(data[0]))
 
         T = []
         for t in targets:
@@ -299,7 +300,7 @@ def n_fold(data, labels, n):
 
         con_mat = confusion_matrix(len(emotions), [predictx.tolist(), result_test])
         avg_classfi_rate += classfi_rate(len(emotions), con_mat)
-        return avg_classfi_rate
+    return avg_classfi_rate / n
 
 
 # --- Test ---
@@ -313,13 +314,14 @@ print n_fold(X, y, 10)
 anger_targets      = map_label(y[0:len(X)*9/10], "anger")
 disgust_targets    = map_label(y[0:len(X)*9/10], "disgust")
 fear_targets       = map_label(y[0:len(X)*9/10], "fear")
-happiness_targets  = map_label(y[0:len(X)*9/10], "happiness")
+happiness_targets  = map_label(y, "happiness")
 sadness_targets    = map_label(y[0:len(X)*9/10], "sadness")
 surprise_targets   = map_label(y[0:len(X)*9/10], "surprise")
 
 test = map_label(ny,"happiness")
 td = X[len(X)*9/10:len(X),:]
 vd = X[0:len(X)*9/10,:]
+
 anger_decision_tree     = decision_tree_learning(vd, attributes, anger_targets)
 disgust_decision_tree   = decision_tree_learning(vd, attributes, disgust_targets)
 fear_decision_tree      = decision_tree_learning(vd, attributes, fear_targets)
