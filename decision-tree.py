@@ -62,8 +62,6 @@ def entropy (pos, neg):
 @param examples          - NumPy array with shape (N, P)
 @param binary_targets    - NumPy array of 0's and 1's with length N
 """
-def remainder (attribute, sum_pn, examples, binary_targets):
-    if sum_pn == 0: return 0
 """
 Recommended change:
 
@@ -71,9 +69,11 @@ Recommended change:
     p1 = np.sum(examples[:, attribute] == 1 && binary_targets == 1)
     n0 = np.sum(examples[:, attribute] == 0 && binary_targets == 0)
     n1 = np.sum(examples[:, attribute] == 1 && binary_targets == 0)
-    return (p0 + n0) / sum_pn * entropy(p0, n0) + (p1 + n1) / sum_pn * entropy(p1, n1)
-
+    return (p0 + n0) / sum_pn * entropy(p0, n0) + (p1 + n1) / sum_pn * entropy(p1, n1
+    )
 """
+def remainder (attribute, sum_pn, examples, binary_targets):
+    if sum_pn == 0: return 0
     p0 = p1 = n0 = n1 = 0.0
     for i in range(len(binary_targets)):
         if binary_targets[i] == 1:
@@ -91,7 +91,7 @@ Recommended change:
 """
 """
 def gain (attribute, examples, binary_targets):
-    [p, n] = np.zeros(2, float)
+    p = n = 0.0
     for item in binary_targets:
         if item == 1:
             p += 1
@@ -167,14 +167,17 @@ def test_single_tree(tree, features):
         depth += 1
     return tree.label, depth
 
-
+"""
+"""
 def highest_score(scores):
     return scores.index(max(scores)) + 1
 
+"""
+"""
 def most_similar(T, features, labels):
     if sum(labels) <= 1:
         return labels.index(sum(labels)) + 1
-    scores = [0,0,0,0,0,0]
+    scores = np.zeros(len(emotions)).tolist()
     for i in range(len(features)):
         if features[i] == 1:
             features[i] = 0
@@ -188,32 +191,23 @@ def most_similar(T, features, labels):
 """
 """
 def testTrees(T, x2):
-    scores, labels = [], []
-    for tree in T:
-        label, depth = test_single_tree(tree, x2)
-# plan A
-        if label == 1: return T.index(tree) + 1
-        labels.append(label)
-        if label == 0: depth = 0
-        scores.append(depth)
-# plan B
-    return highest_score(scores)
+    predictions = []
+    for x in x2:
+        scores, labels = [], []
+        for tree in T:
+            label, depth = test_single_tree(tree, x)
+            # plan A
+            if label == 1: depth = 1
+            labels.append(label)
+            if label == 0: depth = 0
+            scores.append(depth)
+        # plan B
+        #predictions.append(highest_score(scores))
 
-# plan C
-"""
-    if sum(labels) <= 1:
-        return labels.index(sum(labels)) + 1
-    else:
-        for i in range(len(x2)):
-            flag = True
-            if x2[i] == 1:
-                if flag:
-                    flag = False
-                else:
-                    x2[i] = 0
-                    break
-        return most_similar(T, x2, labels)
-"""
+        # plan C
+        predictions.append(most_similar(T, x, labels))
+
+    return np.array(predictions)
 
 
 """
@@ -222,7 +216,7 @@ Compute a confusion matrix
 @param pre_act_class    - Matrix with 2 rows:
                           First row is the predict class for examples;
                           Second row is the actual Classification for examples;
-@param label_num        - numbers of classification
+@param label_num        - number of classifications
 @return                 - confusion matrix
 """
 def confusion_matrix (label_num, pre_act_class):
@@ -268,12 +262,11 @@ def classfi_rate(label_num, confusion_matrix):
 
 
 def n_fold(data, labels, n):
-    targets = []
     length = len(data) / n
     avg_classfi_rate = 0
     for i in range(n):
         # the ith time
-        # divide the date into training_data, valification_data and testing_data
+        # divide the data into training_data, valification_data and testing_data
         testing_data_index = [x + i*length for x in range(length)]
         training_data_index = [index for index in range(len(data)) if index not in testing_data_index]
         testing_data = data[testing_data_index]
@@ -285,29 +278,27 @@ def n_fold(data, labels, n):
         # valification_data = trai&val_data[0:length]
         # _data = trai&val_data[length:]
         # using training_data to train tress
-        anger_targets       = map_label(binary_targets_train, "anger")
-        disgust_targets     = map_label(binary_targets_train, "disgust")
-        fear_targets        = map_label(binary_targets_train, "fear")
-        happiness_targets   = map_label(binary_targets_train, "happiness")
-        sadness_targets     = map_label(binary_targets_train, "sadness")
-        surprise_targets    = map_label(binary_targets_train, "surprise")
-        attributes = range(len(data[0]))
-        anger_decision_tree     = decision_tree_learning(training_data, attributes, anger_targets)
-        disgust_decision_tree   = decision_tree_learning(training_data, attributes, disgust_targets)
-        fear_decision_tree      = decision_tree_learning(training_data, attributes, fear_targets)
-        happiness_decision_tree = decision_tree_learning(training_data, attributes, happiness_targets)
-        sadness_decision_tree   = decision_tree_learning(training_data, attributes, sadness_targets)
-        surprise_decision_tree  = decision_tree_learning(training_data, attributes, surprise_targets)
+        
+        targets = []
+        for e in emotions:
+            targets.append(map_label(binary_targets_train, e))
+
+        #attributes = range(len(data[0]))
+        attributes = list(xrange(45))
+
+        T = []
+        for t in targets:
+            T.append(decision_tree_learning(training_data, attributes, t))
 
         # calculate the precision rate
-        predictx =[]
-        T = [anger_decision_tree, disgust_decision_tree, fear_decision_tree,
-                happiness_decision_tree, sadness_decision_tree, surprise_decision_tree]
-        for data in testing_data:
-            predictx.append(testTrees(T, data))
+        #predictx =[]
+        #T = [anger_decision_tree, disgust_decision_tree, fear_decision_tree,
+        #        happiness_decision_tree, sadness_decision_tree, surprise_decision_tree]
+        #for data in testing_data:
+        predictx = testTrees(T, testing_data)
 
-        con_mat = confusion_matrix(6, [predictx,result_test])
-        avg_classfi_rate += classfi_rate(6, con_mat)
+        con_mat = confusion_matrix(len(emotions), [predictx.tolist(), result_test])
+        avg_classfi_rate += classfi_rate(len(emotions), con_mat)
         return avg_classfi_rate
 
 
@@ -317,6 +308,8 @@ X, y = load_data("cleandata_students.mat")
 nx, ny = load_data("noisydata_students.mat")
 attributes = list(xrange(45))
 
+print n_fold(X, y, 10)
+"""
 anger_targets      = map_label(y[0:len(X)*9/10], "anger")
 disgust_targets    = map_label(y[0:len(X)*9/10], "disgust")
 fear_targets       = map_label(y[0:len(X)*9/10], "fear")
@@ -333,7 +326,7 @@ fear_decision_tree      = decision_tree_learning(vd, attributes, fear_targets)
 happiness_decision_tree = decision_tree_learning(vd, attributes, happiness_targets)
 sadness_decision_tree   = decision_tree_learning(vd, attributes, sadness_targets)
 surprise_decision_tree  = decision_tree_learning(vd, attributes, surprise_targets)
-
+"""
 # calculate the precision rate
 # predictx =[]
 # T = [anger_decision_tree, disgust_decision_tree, fear_decision_tree,
@@ -348,7 +341,6 @@ surprise_decision_tree  = decision_tree_learning(vd, attributes, surprise_target
 #     """
 # diff = (predictx - y[len(X)*9/10:len(X)])
 # print float(sum(x == 0 for x in diff))/len(diff)
-print n_fold(X, y, 10)
 # predictx =[]
 # for i in nx:
 #     ## TODO : fix bug
