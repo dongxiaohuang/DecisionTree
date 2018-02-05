@@ -21,7 +21,7 @@ CO395 Group 57: Dongxiao Huang, Zheng Xun Phang, Yufeng Zhang
 \section*{Implementation}
 How do we select the best attribute at each node? For all attributes, we compute the information gain if the dataset is split on that attribute:
 \begin{align*}
-    \text{Gain(Attribute)} &= \mathcal{I}(p, n) - \left[ \frac{p_0 + n_0}{p + n} \, \mathcal{I}(p_0, n_0) + \frac{p_1 + n_1}{`p + n} \, \mathcal{I}(p_1, n_1) \right] \\[0.5ex]
+    \text{Gain(Attribute)} &= \mathcal{I}(p, n) - \left[ \frac{p_0 + n_0}{p + n} \, \mathcal{I}(p_0, n_0) + \frac{p_1 + n_1}{p + n} \, \mathcal{I}(p_1, n_1) \right] \\[0.5ex]
     p_k &= \text{Number of positive examples with attribute} = k \\
     n_k &= \text{Number of negative examples with attribute} = k \\
     p &= p_0 + p_1 = \text{Number of positive examples before split} \\
@@ -29,11 +29,10 @@ How do we select the best attribute at each node? For all attributes, we compute
 \end{align*}
 There are two common ways to measure information.
 \begin{flalign*}
-    &\text{Entropy:} & \mathcal{I}(p, n) &= - \frac{p}{p+n} \log \frac{p}{p+n} - \frac{n}{p+n} \log \frac{n}{p+n} &\\[0.5ex]
+    &\text{Entropy:} & \mathcal{I}(p, n) &= - \frac{p}{p+n} \log \frac{p}{p+n} - \frac{n}{p+n} \log \frac{n}{p+n} \qquad \text{if } p, n \neq 0 &\\
+    & & \mathcal{I}(p, 0) &= \mathcal{I}(0, n) = 0 &\\[0.5ex]
     &\text{Gini impurity:} & \mathcal{I}(p, n) &= \frac{p}{p+n} \left( 1 - \frac{p}{p+n} \right) + \frac{n}{p+n} \left( 1 - \frac{n}{p+n} \right)
 \end{flalign*}
-with the condition $\mathcal{I}(u, 0) = \mathcal{I}(0, u) = 0$ for all $u > 0$.\par
-\bigskip
 We used entropy since it's stated in the specification, but Gini impurity is faster to compute. Both metrics should give similar results since their graphs have a similar shape:
 \begin{center}
 \begin{minipage} {0.45 \textwidth}
@@ -43,19 +42,20 @@ We used entropy since it's stated in the specification, but Gini impurity is fas
     \draw[->, thick] (0, 0) -- (0, 0.8);
     \newcommand{\gini}[2]    {plot[smooth, domain = #1:#2] (\x, {2 * \x * (1-\x)}) };
     \newcommand{\entropy}[2] {plot[smooth, domain = #1:#2] (\x, {-\x * ln(\x) - (1-\x) * ln(1-\x)}) };
-    \draw[thick, blue] \entropy{0.001}{0.999};
-    \draw[dashed, thick, red] \gini{0}{1};
+    \draw[thick, red] \entropy{0.001}{0.999};
+    \draw[dashed, thick, blue] \gini{0}{1};
     \node at (0, -0.1) {0};
     \node at (1, -0.1) {1};
 \end{tikzpicture}
 \end{minipage}
 \begin{minipage} [b] {0.4 \textwidth}
-    {\color{blue} Entropy: $-x \log x - (1-x) \log (1-x)$} \\
+    {\color{red} Entropy: $-x \log x - (1-x) \log (1-x)$} \\
     \\
-    {\color{red} Gini: $2x (1-x)$}
+    {\color{blue} Gini: $2x (1-x)$}
 \end{minipage}
 \end{center}
-
+When comparing their graphs, their relative heights do not matter because minimizing a function is equivalent to minimizing any positive multiple of that function.\par
+\bigskip
 To evaluate our decision tree, we performed cross validation as follows:
 \begin{enumerate}
     \item Shuffle the dataset and split it into $K = 10$ parts
@@ -63,6 +63,7 @@ To evaluate our decision tree, we performed cross validation as follows:
 \end{enumerate}
 
 \section*{Evaluation}
+Each cell of the confusion matrix is a total, not an average, over \textit{all} folds of cross validation.
 \begin{center}
 \begin{tabular} { C{1.8cm} | C{1.5cm} C{1.5cm} C{1.3cm} C{1.7cm} C{1.5cm} C{1.5cm} }
     \multirow{2}{*}{Predicted} &
@@ -94,6 +95,14 @@ The noisy dataset has lower performance.\par
 \bigskip
 
 \textit{Ambiguity Question}\par
+\bigskip
+In case our 6 trees predict that an image depicts more than 1 emotion, we considered the following methods of selecting 1 emotion:\par
+\bigskip
+1. Pick the first emotion in alphabetical order\par
+This is effectively selecting an emotion at random.\par
+\bigskip
+2. Disable each active unit in turn, and take a majority vote\par
+Example:\par
 \bigskip
 
 \textit{Pruning Question}\par
