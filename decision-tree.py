@@ -54,23 +54,10 @@ Compute entropy
 def entropy (pos, neg):
     if pos == 0 or neg == 0: return 0
     p = 1.0 * pos / (pos + neg)
-    n = 1.0 * neg / (pos + neg)
+    n = 1.0 - p
     return - p * log(p, 2) - n * log(n, 2)
 
 """
-
-@param examples          - NumPy array with shape (N, P)
-@param binary_targets    - NumPy array of 0's and 1's with length N
-"""
-"""
-Recommended change:
-
-    p0 = np.sum(examples[:, attribute] == 0 && binary_targets == 1)
-    p1 = np.sum(examples[:, attribute] == 1 && binary_targets == 1)
-    n0 = np.sum(examples[:, attribute] == 0 && binary_targets == 0)
-    n1 = np.sum(examples[:, attribute] == 1 && binary_targets == 0)
-    return (p0 + n0) / sum_pn * entropy(p0, n0) + (p1 + n1) / sum_pn * entropy(p1, n1
-    )
 """
 def remainder (attribute, sum_pn, examples, binary_targets):
     if sum_pn == 0: return 0
@@ -89,6 +76,20 @@ def remainder (attribute, sum_pn, examples, binary_targets):
     return (p0+n0)/sum_pn * entropy(p0, n0) + (p1+n1)/sum_pn * entropy(p1, n1)
 
 """
+Sugggestion: Delete the remainder() above and rewrite gain() as follows.
+
+@param examples         - NumPy array with shape (N, P)
+@param binary_targets   - NumPy array of 0's and 1's with length N
+
+def gain (attribute, examples, binary_targets):
+    p = np.sum(binary_targets == 1)
+    n = np.sum(binary_targets == 0)
+    p0 = np.sum(examples[:, attribute] == 0 && binary_targets == 1)
+    p1 = np.sum(examples[:, attribute] == 1 && binary_targets == 1)
+    n0 = np.sum(examples[:, attribute] == 0 && binary_targets == 0)
+    n1 = np.sum(examples[:, attribute] == 1 && binary_targets == 0)
+    return entropy(p, n) - (p0 + n0) / (p + n) * entropy(p0, n0) + (p1 + n1) / (p + n) * entropy(p1, n1)
+
 """
 def gain (attribute, examples, binary_targets):
     p = n = 0.0
