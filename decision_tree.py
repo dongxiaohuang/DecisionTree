@@ -3,9 +3,9 @@ import numpy as np
 from math import log
 import pickle
 from visualization import treeviz, build_tree
+
 """
 Load data from a Matlab file
-The data contains a tuple of features and labels
 
 @param filename   - file's path
 @return           - tuple of (features, labels)
@@ -14,7 +14,6 @@ def load_data(filename):
     data = loadmat(filename, squeeze_me = True)
     return data['x'], data['y']
 
-# emotions with labels
 emotions = {'anger'     : 1,
             'disgust'   : 2,
             'fear'      : 3,
@@ -60,7 +59,7 @@ def entropy (pos, neg):
     return - p * log(p, 2) - n * log(n, 2)
 
 """
-Suggestion:eDelete the remainder() above and rewrite gain() as follows.
+Compute information gain of an attribute
 
 @param attribute        - Integer
 @param examples         - NumPy array with shape (N, P)
@@ -105,9 +104,7 @@ class Node:
         self.op = op
         self.label = label
 
-    """
-    Add a subtree to kids
-    """
+    # Add a subtree to kids
     def add_kid (self, kid):
         self.kids.append(kid)
 
@@ -139,14 +136,14 @@ Construct a decision tree
 """
 def decision_tree_learning(examples, attributes, binary_targets, depth = 0):
     if len(set(binary_targets)) == 1:
-        #print "leaf"
+        # print "leaf"
         return Node(kids = [], label = binary_targets[0])
     elif not attributes or depth > 6:
-        #print "leaf"
+        # print "leaf"
         return Node(kids = [], label = majority_value(binary_targets))
     else:
         best_attribute = choose_best_attribute(examples, attributes, binary_targets)
-        #print best_attribute
+        # print best_attribute
         tree = Node(kids = [], op = best_attribute)
         for i in range(2):
             #print "i =", i
@@ -317,7 +314,6 @@ def n_fold(data, labels, n):
     return avg_classfi_rate
 
 
-
 # --- Test ---
 
 x, y = load_data("cleandata_students.mat")
@@ -379,8 +375,8 @@ surprise_decision_tree  = decision_tree_learning(vd, attributes, surprise_target
 # diff = (predictx - ny)
 # print float(sum(x == 0 for x in diff))/len(diff)
 # print classify_emotion(nx[342]),ny[342]
-#for i in X:
-#print test_trees(sadness_decision_tree, X[1])
+# for i in X:
+#     print test_trees(sadness_decision_tree, X[1])
 
-#class1 = np.array([[0,1,2,0],[0,2,1,0]])
-#print confusion_matrix(3,class1)
+# class1 = np.array([[0,1,2,0],[0,2,1,0]])
+# print confusion_matrix(3,class1)
