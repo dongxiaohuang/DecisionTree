@@ -60,24 +60,6 @@ def entropy (pos, neg):
     return - p * log(p, 2) - n * log(n, 2)
 
 """
-
-def remainder (attribute, sum_pn, examples, binary_targets):
-    if sum_pn == 0: return 0
-    p0 = p1 = n0 = n1 = 0.0
-    for i in range(len(binary_targets)):
-        if binary_targets[i] == 1:
-            if examples[i, attribute] == 1:
-                p1 += 1
-            else:
-                p0 += 1
-        else:
-            if examples[i, attribute] == 1:
-                n1 += 1
-            else:
-                n0 += 1
-    return (p0+n0)/sum_pn * entropy(p0, n0) + (p1+n1)/sum_pn * entropy(p1, n1)
-"""
-"""
 Suggestion:eDelete the remainder() above and rewrite gain() as follows.
 
 @param attribute        - Integer
@@ -92,17 +74,7 @@ def gain (attribute, examples, binary_targets):
     n0 = np.sum((examples[:, attribute] == 0) & (binary_targets == 0))
     n1 = np.sum((examples[:, attribute] == 1) & (binary_targets == 0))
     return entropy(p, n) - (p0 + n0) / float(p + n) * entropy(p0, n0) - (p1 + n1) / float(p + n) * entropy(p1, n1)
-"""
-def gain (attribute, examples, binary_targets):
-    p = n = 0.0
-    for item in binary_targets:
-        if item == 1:
-            p += 1
-        else:
-            n += 1
-    return entropy(p, n) - remainder(attribute, p+n, examples, binary_targets)
 
-"""
 """
 Choose the attribute with highest information gain
 
