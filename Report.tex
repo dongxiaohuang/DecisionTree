@@ -54,9 +54,11 @@ We used entropy since it's stated in the specification, but Gini impurity is fas
     {\color{blue} Gini: $2x (1-x)$}
 \end{minipage}
 \end{center}
-When comparing their graphs, their relative heights do not matter because minimizing a function is equivalent to minimizing any positive multiple of that function.\par
+N.B. When comparing their graphs, their heights do not matter because minimizing a function is equivalent to minimizing any positive multiple of that function.\par
 \bigskip
-To evaluate our decision tree, we performed cross validation as follows:
+The decision tree algorithm is given in the specification, so it's unnecessary to repeat it here. We try to use NumPy functions instead of Python loops for performance since the former run on vectorized C code.\par
+\bigskip
+To evaluate our decision tree, we performed $K$-fold cross validation as follows:
 \begin{enumerate}
     \item Shuffle the dataset and split it into $K = 10$ parts
     \item For each $k \in \{1, \dotsm, K\}$ we train the decision tree on the dataset \textit{excluding} part $k$ and then test the decision tree on part $k$. During testing, the relevant cells in the confusion matrix are incremented.
@@ -77,35 +79,32 @@ Each cell of the confusion matrix is a total, not an average, over \textit{all} 
     Surprise  &   &   &   &   &   &
 \end{tabular}
 \end{center}
-From the confusion matrix above, we can compute these summary statistics:
+We add up the relevant cells in the confusion matrix above to compute these summary statistics:
 \begin{center}
-\begin{tabular} { C{1.7cm} | C{1.5cm} C{1.5cm} C{1.3cm} C{1.7cm} C{1.5cm} C{1.5cm} }
+\begin{tabular} { C{2.5cm} | C{1.5cm} C{1.5cm} C{1.3cm} C{1.7cm} C{1.5cm} C{1.5cm} }
     & Anger & Disgust & Fear & Happiness & Sadness & Surprise \\ \hline
     Precision   &   &   &   &   &   &   \\
     Recall      &   &   &   &   &   &   \\
-    $F_1$ score &   &   &   &   &   &
+    $F_1$ score &   &   &   &   &   & \\
+    Classification rate &   &   &   &   &   &
 \end{tabular}
 \end{center}
+Our 6 trees classify the emotions `   ', `   ' with high accuracy while `   ' seem harder to recognize.
 
 \section*{Miscellaneous}
-
 \textit{Noisy-Clean Datasets Question}\par
 \bigskip
 The noisy dataset has lower performance.\par
 \bigskip
-
 \textit{Ambiguity Question}\par
 \bigskip
-In case our 6 trees predict that an image depicts more than 1 emotion, we considered the following methods of selecting 1 emotion:\par
+In case our 6 trees predict that a given image depicts more than one emotion, we considered several methods of selecting only one emotion:\par
 \bigskip
-1. Pick the first emotion in alphabetical order\par
-This is effectively selecting an emotion at random.\par
+1. Select at random e.g. select the first emotion in alphabetical order\par
 \bigskip
 2. Disable each active unit in turn, and take a majority vote\par
 Example:\par
 \bigskip
-
 \textit{Pruning Question}\par
 \bigskip
-
 \end{document}
