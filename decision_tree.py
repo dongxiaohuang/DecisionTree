@@ -14,6 +14,7 @@ def load_data(filename):
     data = loadmat(filename, squeeze_me = True)
     return data['x'], data['y']
 
+# emotions with labels
 emotions = {'anger'     : 1,
             'disgust'   : 2,
             'fear'      : 3,
@@ -59,7 +60,7 @@ def entropy (pos, neg):
     return - p * log(p, 2) - n * log(n, 2)
 
 """
-"""
+
 def remainder (attribute, sum_pn, examples, binary_targets):
     if sum_pn == 0: return 0
     p0 = p1 = n0 = n1 = 0.0
@@ -70,28 +71,27 @@ def remainder (attribute, sum_pn, examples, binary_targets):
             else:
                 p0 += 1
         else:
-            if examples[i, attribute] == 1:
-                n1 += 1
+            if examples[i, attribute] == 1: 
+                n1 += 1     
             else:
                 n0 += 1
     return (p0+n0)/sum_pn * entropy(p0, n0) + (p1+n1)/sum_pn * entropy(p1, n1)
-
 """
-Sugggestion: Delete the remainder() above and rewrite gain() as follows.
+"""
+Suggestion:eDelete the remainder() above and rewrite gain() as follows.
 
 @param attribute        - Integer
 @param examples         - NumPy array with shape (N, P)
 @param binary_targets   - NumPy array of 0's and 1's with length N
-
+"""
 def gain (attribute, examples, binary_targets):
     p = np.sum(binary_targets == 1)
     n = np.sum(binary_targets == 0)
-    p0 = np.sum(examples[:, attribute] == 0 && binary_targets == 1)
-    p1 = np.sum(examples[:, attribute] == 1 && binary_targets == 1)
-    n0 = np.sum(examples[:, attribute] == 0 && binary_targets == 0)
-    n1 = np.sum(examples[:, attribute] == 1 && binary_targets == 0)
-    return entropy(p, n) - (p0 + n0) / (p + n) * entropy(p0, n0) - (p1 + n1) / (p + n) * entropy(p1, n1)
-
+    p0 = np.sum((examples[:, attribute] == 0) & (binary_targets == 1))
+    p1 = np.sum((examples[:, attribute] == 1) & (binary_targets == 1))
+    n0 = np.sum((examples[:, attribute] == 0) & (binary_targets == 0))
+    n1 = np.sum((examples[:, attribute] == 1) & (binary_targets == 0))
+    return entropy(p, n) - (p0 + n0) / float(p + n) * entropy(p0, n0) - (p1 + n1) / float(p + n) * entropy(p1, n1)
 """
 def gain (attribute, examples, binary_targets):
     p = n = 0.0
@@ -104,6 +104,13 @@ def gain (attribute, examples, binary_targets):
 
 """
 """
+Choose the attribute with highest information gain
+
+@param examples         - list of data (AU)
+@param attributes       - available attributes to choose
+@param binary_targets   - list of labels with 0 and 1
+@return                 - index of attribute with highest gain
+"""
 def choose_best_attribute(examples, attributes, binary_targets):
     best_gain = 0
     best = attributes[0]
@@ -114,18 +121,32 @@ def choose_best_attribute(examples, attributes, binary_targets):
     return best
 
 """
+A node in a tree, which contains 
+kids    - subtrees
+op      - attribute being tested
+label   - classification at leaf nodes
 """
 class Node:
 
     def __init__ (self, kids, op = None, label = None):
         self.kids = kids
-        self.op = op             # Attribute being tested
-        self.label = label       # Classification at leaf nodes
+        self.op = op
+        self.label = label
 
+    """
+    Add a subtree to kids
+    """
     def add_kid (self, kid):
         self.kids.append(kid)
 
 """
+Find subset of targets for each attribute equal to a certain value
+
+@param examples         - list of data (AU)
+@param binary_targets   - list of labels with 0 and 1
+@param attribute        - the attribute being checked
+@param value            - value of 0 or 1
+@return                 - a subset of targets whose attribute would be all 0 or 1
 """
 def find_elements(examples, binary_targets, attribute, value):
     index = []
@@ -137,12 +158,18 @@ def find_elements(examples, binary_targets, attribute, value):
     return examples[index, :], binary_targets_i
 
 """
+Construct a decision tree
+
+@param examples         - list of data (AU)
+@param attributes       - available attributes to choose one as the best attribute
+@param binary_targets   - list of labels with 0 and 1
+@return                 - a node of the tree, root, internal node, or leaf node
 """
-def decision_tree_learning(examples, attributes, binary_targets):
+def decision_tree_learning(examples, attributes, binary_targets, depth):
     if len(set(binary_targets)) == 1:
         #print "leaf"
         return Node(kids = [], label = binary_targets[0])
-    elif not attributes:
+    elif not attributes or depth > 6:
         #print "leaf"
         return Node(kids = [], label = majority_value(binary_targets))
     else:
@@ -158,7 +185,7 @@ def decision_tree_learning(examples, attributes, binary_targets):
             else:
                 new_attribute = list(attributes)
                 new_attribute.remove(best_attribute)
-                subtree = decision_tree_learning(examples_i, new_attribute, binary_targets_i)
+                subtree = decision_tree_learning(examples_i, new_attribute, binary_targets_i, depth+1)
                 tree.add_kid(subtree)
     return tree
 
@@ -272,13 +299,10 @@ def generate_trees(training_data, binary_targets):
     for j in range(len(emotions)):
         e = emotions.keys()[emotions.values().index(j+1)]
         targets.append(map_label(binary_targets, e))
-
     attributes = range(len(training_data[0]))
-
     T = []
     for t in targets:
-        T.append(decision_tree_learning(training_data, attributes, t))
-
+        T.append(decision_tree_learning(training_data, attributes, t, 0))
     return T
 
 """
@@ -318,13 +342,13 @@ def n_fold(data, labels, n):
 x, y = load_data("cleandata_students.mat")
 nx, ny = load_data("noisydata_students.mat")
 
-T = generate_trees(x, y)
+#T = generate_trees(x, y)
 
-output = open('Trees.pkl', 'wb')
-pickle.dump(T, output)
-output.close()
+#output = open('Trees.pkl', 'wb')
+#pickle.dump(T, output)
+#output.close()
 
-#print n_fold(x, y, 20)
+print n_fold(x, y, 10)
 
 """
 anger_targets      = map_label(y[0:len(X)*9/10], "anger")
