@@ -205,7 +205,7 @@ def testTrees(T, x2):
             scores.append(depth)
         # plan A
         #predictions.append(highest_score(labels))
-        
+
         # plan B
         #predictions.append(highest_score(scores))
 
@@ -299,7 +299,7 @@ def n_fold(data, labels, n):
         # trai&val_data = data[trai&val_data_index]
         # valification_data = trai&val_data[0:length]
         # _data = trai&val_data[length:]
-        
+
         # using training_data to train trees
         T = generate_trees(training_data, binary_targets_train)
 
@@ -307,6 +307,7 @@ def n_fold(data, labels, n):
         predictx = testTrees(T, testing_data)
 
         con_mat = confusion_matrix(len(emotions), [predictx.tolist(), result_test])
+        print con_mat
         avg_classfi_rate += classfi_rate(len(emotions), con_mat)
 
     return avg_classfi_rate / n
@@ -324,7 +325,7 @@ output = open('Trees.pkl', 'wb')
 pickle.dump(T, output)
 output.close()
 
-#print n_fold(x, y, 20)
+print n_fold(x, y, 10)
 
 """
 anger_targets      = map_label(y[0:len(X)*9/10], "anger")
