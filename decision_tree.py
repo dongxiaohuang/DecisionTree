@@ -93,7 +93,7 @@ def choose_best_attribute(examples, attributes, binary_targets):
     return best
 
 """
-A node in a tree, which contains 
+A node in a tree, which contains
 kids    - subtrees
 op      - attribute being tested
 label   - classification at leaf nodes
@@ -137,7 +137,7 @@ Construct a decision tree
 @param binary_targets   - list of labels with 0 and 1
 @return                 - a node of the tree, root, internal node, or leaf node
 """
-def decision_tree_learning(examples, attributes, binary_targets, depth):
+def decision_tree_learning(examples, attributes, binary_targets, depth = 0):
     if len(set(binary_targets)) == 1:
         #print "leaf"
         return Node(kids = [], label = binary_targets[0])
@@ -204,7 +204,7 @@ def testTrees(T, x2):
             scores.append(depth)
         # plan A
         #predictions.append(highest_score(labels))
-        
+
         # plan B
         #predictions.append(highest_score(scores))
 
@@ -282,30 +282,40 @@ def generate_trees(training_data, binary_targets):
 def n_fold(data, labels, n):
     length = len(data) / n
     avg_classfi_rate = 0
+    result_test = []
+    predictx = []
     for i in range(n):
         # the ith time
         # divide the data into training_data, valification_data and testing_data
         testing_data_index = [x + i*length for x in range(length)]
         training_data_index = [index for index in range(len(data)) if index not in testing_data_index]
         testing_data = data[testing_data_index]
-        result_test = [labels[i] for i in testing_data_index]
+
+        result_test += [labels[i] for i in testing_data_index]
         training_data = data[training_data_index]
         binary_targets_train = [labels[i] for i in training_data_index]
         # trai&val_data_index = [index for index in range(len(data)) if index not in testing_data_index]
         # trai&val_data = data[trai&val_data_index]
         # valification_data = trai&val_data[0:length]
         # _data = trai&val_data[length:]
-        
-        # using training_data to train trees
-        T = generate_trees(training_data, binary_targets_train)
+        # using training_data to train tress
+        targets = []
+        for j in range(len(emotions)):
+            e = emotions.keys()[emotions.values().index(j+1)]
+            targets.append(map_label(binary_targets_train, e))
+
+        attributes = range(len(data[0]))
+        T = []
+        for t in targets:
+            T.append(decision_tree_learning(training_data, attributes, t))
 
         # calculate the precision rate
-        predictx = testTrees(T, testing_data)
+        predictx += (testTrees(T, testing_data).tolist())
 
-        con_mat = confusion_matrix(len(emotions), [predictx.tolist(), result_test])
-        avg_classfi_rate += classfi_rate(len(emotions), con_mat)
-
-    return avg_classfi_rate / n
+    con_mat = confusion_matrix(len(emotions), [predictx, result_test])
+    print con_mat
+    avg_classfi_rate += classfi_rate(len(emotions), con_mat)
+    return avg_classfi_rate
 
 
 
