@@ -226,9 +226,9 @@ Compute a confusion matrix
 def confusion_matrix (label_num, pre_act_class):
     confusion = np.zeros((label_num,label_num))
     for index in range(len(pre_act_class[0])):
-        i = pre_act_class[1][index] - 1
-        j = pre_act_class[0][index] - 1
-        confusion[i][j] += 1
+        actual_i = pre_act_class[1][index] - 1
+        predict_j = pre_act_class[0][index] - 1
+        confusion[actual_i][predict_j] += 1
     return confusion
 
 def recall_precision_rates(label_num, confusion_matrix):
