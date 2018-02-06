@@ -1,5 +1,4 @@
 import graphviz
-# from decision_tree import *
 
 YELLOW = "#fefecd"
 
@@ -184,21 +183,6 @@ def treeviz(root, tree_name, leftfield='left', rightfield='right'):
     return graphviz.Source(s)
 
 
-# x, y = load_data("cleandata_students.mat")
-# nx, ny = load_data("noisydata_students.mat")
-
-# #
-# sad_attr = map_label(y, 'sadness')
-# happy_attr = map_label(y, 'happiness')
-# anger_attr = map_label(y, 'anger')
-# surprise_attr = map_label(y, 'surprise')
-# fear_attr = map_label(y, 'fear')
-# disgust_attr = map_label(y, 'disgust')
-# attributes = range(45)
-# happy_tree = decision_tree_learning(x, attributes, sad_attr)
-#
-# # T = generate_trees(x, y)
-
 class Tree:
     def __init__(self, value, left=None, right=None, leaf = 0):
         self.value = value
@@ -214,9 +198,3 @@ def build_tree(decision_tree):
     left = build_tree(decision_tree.kids[0])
     right = build_tree(decision_tree.kids[1])
     return Tree(int(decision_tree.op), left, right)
-
-
-# happy_tree_graph = build_tree(happy_tree)
-#
-# g = treeviz(happy_tree_graph, tree_name = "Sad Tree")
-# g.render(view=True)
