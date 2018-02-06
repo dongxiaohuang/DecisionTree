@@ -2,7 +2,7 @@ from scipy.io import loadmat
 import numpy as np
 from math import log
 import pickle
-
+from visualization import treeviz, build_tree
 """
 Load data from a Matlab file
 The data contains a tuple of features and labels
@@ -341,7 +341,6 @@ def n_fold(data, labels, n):
         predictx += (testTrees(T, testing_data).tolist())
 
     con_mat = confusion_matrix(len(emotions), [predictx, result_test])
-    print con_mat
     avg_classfi_rate += classfi_rate(len(emotions), con_mat)
     return avg_classfi_rate
 
@@ -352,7 +351,12 @@ def n_fold(data, labels, n):
 x, y = load_data("cleandata_students.mat")
 nx, ny = load_data("noisydata_students.mat")
 
-#T = generate_trees(x, y)
+T = generate_trees(x, y)
+for index in range(len(T)):
+    tree_graph = build_tree(T[index])
+    treeName = e = emotions.keys()[emotions.values().index(index+1)]+'Tree'
+    g = treeviz(tree_graph, tree_name = treeName)
+    g.render(treeName,view=True)
 
 #output = open('Trees.pkl', 'wb')
 #pickle.dump(T, output)
