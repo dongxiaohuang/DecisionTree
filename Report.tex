@@ -14,7 +14,7 @@
 \newcolumntype{C}[1]{>{\centering  \TS\BS\arraybackslash}m{#1}}
 \newcolumntype{R}[1]{>{\raggedleft \TS\BS\arraybackslash}m{#1}}   % Align right
 % Equations
-\usepackage{amsmath, bm, bbold, pgfplots}
+\usepackage{amsmath, bm, bbold, tikz}
 
 \begin{document}
 CO395 Group 57: Dongxiao Huang, Zheng Xun Phang, Yufeng Zhang
@@ -54,7 +54,7 @@ We used entropy since it's stated in the specification, but Gini impurity is fas
     {\color{blue} Gini: $2x (1-x)$}
 \end{minipage}
 \end{center}
-N.B. When comparing their graphs, their heights do not matter because minimizing a function is equivalent to minimizing any positive multiple of that function.\par
+N.B. The \textit{height} of those graphs is irrelevant because minimizing a function is equivalent to minimizing any positive multiple of that function. What matters is their \textit{shape}.\par
 \bigskip
 The decision tree algorithm is given in the specification, so it's unnecessary to repeat it here. We try to use NumPy functions instead of Python loops for performance since the former run on vectorized C code.\par
 \bigskip
@@ -71,12 +71,12 @@ Each cell of the confusion matrix is a total, not an average, over \textit{all} 
     \multirow{2}{*}{Predicted} &
     \multicolumn{6}{c}{Actual} \\
     & Anger & Disgust & Fear & Happiness & Sadness & Surprise \\ \hline
-    Anger     &   &   &   &   &   &   \\
-    Disgust   &   &   &   &   &   &   \\
-    Fear      &   &   &   &   &   &   \\
-    Happiness &   &   &   &   &   &   \\
-    Sadness   &   &   &   &   &   &   \\
-    Surprise  &   &   &   &   &   &
+    Anger     & 106 &  11 &  3 &   5 &  5 &   1 \\
+    Disgust   &  23 & 157 &  1 &   5 &  9 &   3 \\
+    Fear      &  17 &   2 & 77 &   2 &  7 &  13 \\
+    Happiness &  22 &   6 &  1 & 179 &  6 &   1 \\
+    Sadness   &  34 &  11 &  3 &   4 & 78 &   2 \\
+    Surprise  &  27 &   3 &  7 &   4 &  4 & 161
 \end{tabular}
 \end{center}
 We add up the relevant cells in the confusion matrix above to compute these summary statistics:
@@ -85,7 +85,7 @@ We add up the relevant cells in the confusion matrix above to compute these summ
     & Anger & Disgust & Fear & Happiness & Sadness & Surprise \\ \hline
     Precision   &   &   &   &   &   &   \\
     Recall      &   &   &   &   &   &   \\
-    $F_1$ score &   &   &   &   &   & \\
+    $F_1$ score &   &   &   &   &   &   \\
     Classification rate &   &   &   &   &   &
 \end{tabular}
 \end{center}
