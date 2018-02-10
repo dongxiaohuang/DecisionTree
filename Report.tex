@@ -96,6 +96,7 @@ We add up the relevant cells in the confusion matrix above to compute these summ
     $F_1$ score & 0.589 & 0.809 & 0.733 & 0.865 & 0.647 & 0.832 \\
 \end{tabular}
 \[ \text{Classification rate} = \frac{106 + 157 + \dotsm + 161}{1000} = 0.758 \]
+\[ \text{Unweighted Average Recall(UAR)} =mean(R1, R2, R3,бн, R6)= \frac{0.809 + 0.793 + \dotsm + 0.782}{6} = 0.744 \]
 \end{center}
 
 \subsection*{Noisy Data}
@@ -111,7 +112,7 @@ We add up the relevant cells in the confusion matrix above to compute these summ
     Surprise  &  33 &   2 &  15 &   7 &  8 & 155
 \end{tabular}
 \end{center}
-We add up the relevant cells in the confusion matrix above to compute these summary statistics:
+Summary statistics:
 \begin{center}
 \begin{tabular} { C{2.7cm} | C{1.5cm} C{1.5cm} C{1.3cm} C{1.7cm} C{1.5cm} C{1.5cm} }
     & Anger & Disgust & Fear & Happiness & Sadness & Surprise \\ \hline
@@ -121,6 +122,7 @@ We add up the relevant cells in the confusion matrix above to compute these summ
 \end{tabular}
 \end{center}
 \[ \text{Classification rate} = \frac{48 + 127 + \dotsm + 155}{1000} = 0.639 \]
+\[ \text{Unweighted Average Recall(UAR)} =mean(R1, R2, R3,бн, R6)= \frac{0.545 + 0.679 + \dotsm + 0.705}{6} = 0.613 \]
 The $F_\alpha$ score by van Rijsbergen (1975) is a harmonic mean of precision $P$ and recall $R$:
 \[ \frac{1 + \alpha^2}{F_\alpha} = \frac1P + \frac{\alpha^2}{R} \qquad
    \Rightarrow \qquad F_\alpha = \frac{(1+\alpha^2) PR}{\alpha^2 P + R} \]
@@ -131,8 +133,12 @@ Our 6 trees classify the emotions Disgust, Happiness and Surprise with high accu
 \section*{Miscellaneous}
 
 \subsection*{Noisy-Clean Datasets Question}
+\subsubsection*{Overall Performance}
+The noisy dataset has lower performance. The classification rate for tree trained by clean data using 10-fold method 0.758 while that is 0.639 for using noisy data. This is because noisy data have more conflict results and also by the UAR(0.744vs0.613), it can be concluded that using clean data results in a better performance. \par 
 
-The noisy dataset has lower performance.\par
+From F1 distributions for that using clean data and noisy data, there are more imbalanced Test Set Conclusions when noisy data is used. This is because when using noisy data to test, the tree would give more result of all zeros, which means none of the emotion. By this case, the algorithm will judge that as Anger, which is the first emotion in the classes. As a result, the F1 for \textit{Anger}\par
+
+\subsubsection*{Per Emotion}
 
 \subsection*{Ambiguity Question}
 In case our 6 trees predict that a given image depicts more than one emotion, we considered several methods of selecting only one emotion:\par
@@ -151,7 +157,7 @@ Example:\par
 \subsection*{Pruning Question}
 The function $pruning\_example(x, y)$ takes two inputs: $x$ is an $n \times p$ matrix of features and $y$ is a $n$-dimensional vector of target variables.\par
 \bigskip
-It builds a classification tree and returns a figure with two curves, showing how classification cost changes with tree size (number of leaves). The figure also marks the smallest tree whose cost is within 1 standard error of the minimum cost.\par
+It builds a classification tree and returns a figure with two curves, showing how classification cost changes with tree size (measured by number of leaves instead of depth). The figure also marks the smallest tree size whose cost is within 1 standard error of the minimum cost.\par
 \bigskip
 The two curves correspond to two methods of computing classification costs.
 \begin{itemize}
@@ -163,29 +169,27 @@ The two curves correspond to two methods of computing classification costs.
 \centering
 \includegraphics[width = 0.9 \textwidth] {pruneAnalysis/clean_data_analyse.png}
 \caption{Clean Data}
+\label{clean}
 \end{figure}
 
 \begin{figure} [hp!]
 \centering
 \includegraphics[width = 0.9 \textwidth] {pruneAnalysis/noisy_data_analyse.png}
 \caption{Noisy Data}
+\label{noisy}
 \end{figure}
 
-In figures 1 and 2, we find that classification costs have similar behaviour on both clean and noisy data. Resubstitution error keeps falling as the tree gets larger, while validation error falls initially and then rises.\par
+In figures \ref{clean} and \ref{noisy}, we find that classification costs have similar behaviour on both clean and noisy data. Resubstitution error keeps falling as the tree gets larger, while validation error falls initially and then rises.\par
 \bigskip
 This is expected because a deeper tree will always fit a dataset better than a shallower tree. However if a tree is too deep, it will overfit the training data but fail to generalize to unseen data, which is manifested in the increasing validation error.\par
 \bigskip
-Differences between clean and noisy data:\par
-\bigskip
-For a fixed tree size, classification costs are higher on noisy data than clean data, obviously since noise makes it harder for a tree to fit the data.\par
-\bigskip
-The gap between resubstitution error and validation error rises faster for noisy data than clean data, which shows that overfitting is more serious when the data have noise.\par
-\bigskip
-Optimal tree size for clean data is $\approx 22$ leaves while that for noisy data is $\approx 22$ leaves.\par
-\bigskip
-
-The reasons for the difference are because the the noisy data contains more bad results than clean data, and with some conflict examples, so in this classification tree algorithm, the tree trained need more branches to cover each case, which means more terminal nodes than using clean data.\par
-Considering the cost, in the resubstitution case, the terminal costs of noisy data and clean data are almost equal to zero, but the noisy data set is a little bit higher than clean data, this is because the noisy data contain more conflict examples, which means the same attributes with different results.\par
+Differences between clean and noisy data:
+\begin{itemize}
+    \item For a fixed tree size, resubstitution and validation errors are higher on noisy data than clean data, since noise by definition makes it harder for a tree to fit the data.
+    \item For the same reason, noisy data require more branches, and hence more leaves, to classify all training examples. It took about 275 vs 200 leaves to achieve zero in-sample error.
+    \item The gap between resubstitution and validation errors rises faster for noisy data than clean data, which shows that overfitting is more severe when the data have noise.
+\end{itemize}
+Optimal tree size for clean data is about 22 leaves while that for noisy data is 25 leaves.\par
 
 \newpage
 
@@ -195,33 +199,33 @@ Figure \ref{firstTree} to \ref{lastTree} are the trees trained on the entire cle
 \begin{figure}[h!]
 \centering
 \includegraphics[width=\textwidth]{treePics/angerTree.pdf}
-\caption{Anger Tree Visualization}
+\caption{Anger Tree}
 \label{firstTree}
 \end{figure}
 \begin{figure}[h!]
 \centering
 \includegraphics[width=\textwidth]{treePics/disgustTree.pdf}
-\caption{Disgust Tree Visualization}
+\caption{Disgust Tree}
 \end{figure}
 \begin{figure}[h!]
 \centering
 \includegraphics[width=\textwidth]{treePics/fearTree.pdf}
-\caption{Fear Tree Visualization}
+\caption{Fear Tree}
 \end{figure}
 \begin{figure}[!hb]
 \centering
 \includegraphics[width=\textwidth]{treePics/happinessTree.pdf}
-\caption{Happiness Tree Visualization}
+\caption{Happiness Tree}
 \end{figure}
 \begin{figure}[!hb]
 \centering
 \includegraphics[width=\textwidth]{treePics/sadnessTree.pdf}
-\caption{Sadness Tree Visualization}
+\caption{Sadness Tree}
 \end{figure}
 \begin{figure}[!hb]
 \centering
 \includegraphics[width=\textwidth]{treePics/surpriseTree.pdf}
-\caption{Surprise Tree Visualization}
+\caption{Surprise Tree}
 \label{lastTree}
 \end{figure}
 \end{document}
