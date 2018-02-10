@@ -6,6 +6,7 @@
 % Section
 \usepackage[compact]{titlesec} \titlespacing*{\section}{0pt}{2ex}{2ex}
 \titleformat*{\section}{\normalfont\Large\bfseries\color[RGB]{0,0,192}}
+\titleformat*{\subsection}{\normalfont\bfseries\color[RGB]{192,0,0}}
 % Table spacing
 \newcommand\TS{\rule{0pt}{2.6ex}}         % Top strut
 \newcommand\BS{\rule[-0.9ex]{0pt}{0pt}}   % Bottom strut
@@ -16,8 +17,12 @@
 % Equations
 \usepackage{amsmath, bm, bbold, tikz}
 
+\title{CO395 Group 57 \vspace{-1ex}}
+\author{Dongxiao Huang, Zheng Xun Phang, Yufeng Zhang}
+\date{\vspace{-1.5ex}}
+
 \begin{document}
-CO395 Group 57: Dongxiao Huang, Zheng Xun Phang, Yufeng Zhang
+\maketitle
 \section*{Implementation}
 How do we select the best attribute at each node? For all attributes, we compute the information gain if the dataset is split on that attribute:
 \begin{align*}
@@ -33,7 +38,7 @@ There are two common ways to measure information.
     & & \mathcal{I}(p, 0) &= \mathcal{I}(0, n) = 0 &\\[0.5ex]
     &\text{Gini impurity:} & \mathcal{I}(p, n) &= \frac{p}{p+n} \left( 1 - \frac{p}{p+n} \right) + \frac{n}{p+n} \left( 1 - \frac{n}{p+n} \right)
 \end{flalign*}
-We used entropy since it's stated in the specification, but Gini impurity is faster to compute. Both metrics should give similar results since their graphs have a similar shape:
+We used entropy since it is stated in the specification, but Gini impurity is faster to compute. Both metrics should give similar results since their graphs have a similar shape:
 \begin{center}
 \begin{minipage} {0.45 \textwidth}
 \begin{tikzpicture} [xscale = 4, yscale = 4]
@@ -65,10 +70,14 @@ To evaluate our decision tree, we performed $K$-fold cross validation as follows
 \end{enumerate}
 
 \section*{Evaluation}
-Each cell of the confusion matrix is a total, not an average, over all folds of cross validation.
+Each cell of the confusion matrix is a total, not an average, over all folds of cross validation. There were $n = 1000$ test examples in total.\par
+\bigskip
+Note: It makes no sense to compute classification rate for each emotion separately. For example, if the actual emotion is Anger then (Fear, Surprise) counts as a true negative for Anger even though it's a misclassification.
+\bigskip
+\subsection*{Clean Data}
 \begin{center}
-\begin{tabular} { C{2cm} | C{1.5cm} C{1.5cm} C{1.3cm} C{1.7cm} C{1.5cm} C{1.5cm} }
-    \multirow{2}{*}{Predicted} & \multicolumn{6}{c}{Actual} \\
+\begin{tabular} { C{2.7cm} | C{1.5cm} C{1.5cm} C{1.3cm} C{1.7cm} C{1.5cm} C{1.5cm} }
+\multirow{2}{*}{Actual Class} & \multicolumn{6}{c}{Predicted Class} \\
     & Anger & Disgust & Fear & Happiness & Sadness & Surprise \\ \hline
     Anger     & 106 &  11 &  3 &   5 &  5 &   1 \\
     Disgust   &  23 & 157 &  1 &   5 &  9 &   3 \\
@@ -80,35 +89,139 @@ Each cell of the confusion matrix is a total, not an average, over all folds of 
 \end{center}
 We add up the relevant cells in the confusion matrix above to compute these summary statistics:
 \begin{center}
-\begin{tabular} { C{2cm} | C{1.5cm} C{1.5cm} C{1.3cm} C{1.7cm} C{1.5cm} C{1.5cm} }
-    & Anger & Disgust & Fear & Happiness & Sadness & Surprise   \\ \hline
-    Precision   & 0.809 & 0.793 & 0.653 & 0.833 & 0.591 & 0.782 \\
-    Recall      & 0.463 & 0.826 & 0.837 & 0.899 & 0.716 & 0.890 \\
+\begin{tabular} { C{2.7cm} | C{1.5cm} C{1.5cm} C{1.3cm} C{1.7cm} C{1.5cm} C{1.5cm} }
+    & Anger & Disgust & Fear & Happiness & Sadness & Surprise \\ \hline
+    Precision & 0.463 & 0.826 & 0.837 & 0.899 & 0.716 & 0.890 \\
+    Recall    & 0.809 & 0.793 & 0.653 & 0.833 & 0.591 & 0.782 \\
     $F_1$ score & 0.589 & 0.809 & 0.733 & 0.865 & 0.647 & 0.832 \\
 \end{tabular}
+\[ \text{Classification rate} = \frac{106 + 157 + \dotsm + 161}{1000} = 0.758 \]
 \end{center}
-\[ \text{Classification rate} = \frac{106 + 157 + \dotsm + 161}{1000 - (106 + \dotsm + 161)} = 0.758 \]
-N.B. It makes no sense to compute classification rate for each emotion separately. For example, if the actual emotion is Anger then (Fear, Surprise) counts as a true negative for Anger even though it's a misclassification.\par
+
+\subsection*{Noisy Data}
+\begin{center}
+\begin{tabular} { C{2.7cm} | C{1.5cm} C{1.5cm} C{1.3cm} C{1.7cm} C{1.5cm} C{1.5cm} }
+    \multirow{2}{*}{Actual Class} & \multicolumn{6}{c}{Predicted Class} \\
+    & Anger & Disgust & Fear & Happiness & Sadness & Surprise \\ \hline
+    Anger     &  48 &   6 &  11 &   5 & 15 &   3 \\
+    Disgust   &  38 & 127 &   9 &   7 &  3 &   3 \\
+    Fear      &  42 &  10 & 108 &  13 &  7 &   7 \\
+    Happiness &  34 &   8 &   6 & 153 &  2 &   5 \\
+    Sadness   &  46 &   2 &   6 &   4 & 48 &   4 \\
+    Surprise  &  33 &   2 &  15 &   7 &  8 & 155
+\end{tabular}
+\end{center}
+We add up the relevant cells in the confusion matrix above to compute these summary statistics:
+\begin{center}
+\begin{tabular} { C{2.7cm} | C{1.5cm} C{1.5cm} C{1.3cm} C{1.7cm} C{1.5cm} C{1.5cm} }
+    & Anger & Disgust & Fear & Happiness & Sadness & Surprise \\ \hline
+    Precision & 0.199 & 0.819 & 0.697 & 0.810 & 0.578 & 0.876 \\
+    Recall    & 0.545 & 0.679 & 0.577 & 0.736 & 0.436 & 0.705 \\
+    $F_1$ score & 0.292 & 0.743 & 0.631 & 0.771 & 0.497 & 0.781 \\
+\end{tabular}
+\end{center}
+\[ \text{Classification rate} = \frac{48 + 127 + \dotsm + 155}{1000} = 0.639 \]
+The $F_\alpha$ score by van Rijsbergen (1975) is a harmonic mean of precision $P$ and recall $R$:
+\[ \frac{1 + \alpha^2}{F_\alpha} = \frac1P + \frac{\alpha^2}{R} \qquad
+   \Rightarrow \qquad F_\alpha = \frac{(1+\alpha^2) PR}{\alpha^2 P + R} \]
+which allows us to give a higher or lower weight to precision or recall. This is useful if, for example, it's essential to detect Anger in an image when it's present.\par
 \bigskip
-The $F$ score by van Rijsbergen (1975) is a harmonic mean of precision $P$ and recall $R$:
-\[ \frac{1+\beta^2}{F_\beta} = \frac1P + \frac{\beta^2}{R} \qquad
-   \Rightarrow \qquad F_\beta = \frac{(1+\beta^2) PR}{\beta^2 P + R} \]
 Our 6 trees classify the emotions Disgust, Happiness and Surprise with high accuracy, while Anger and Sadness seem harder to recognize.
 
 \section*{Miscellaneous}
-\textit{Noisy-Clean Datasets Question}\par
-\bigskip
+
+\subsection*{Noisy-Clean Datasets Question}
+
 The noisy dataset has lower performance.\par
-\bigskip
-\textit{Ambiguity Question}\par
-\bigskip
+
+\subsection*{Ambiguity Question}
 In case our 6 trees predict that a given image depicts more than one emotion, we considered several methods of selecting only one emotion:\par
 \bigskip
 1. Select at random e.g. select the first emotion in alphabetical order\par
 \bigskip
-2. Disable each active unit in turn, and take a majority vote\par
+2. Select by the depth of the tree\par
+If selected by the shorter tree:\par
+If Selected by the larger tree:\par
+\bigskip
+3. Disable each active unit in turn, and take a majority vote\par
+In this method, for example, if one collected data which contains 45 features in this project, and its actual result is one emotion. It can be said that if we remove one of the features (just as hiding part of the face)then the data should also be concluded to the actual emotion. In order to avoid removing the most important feature for the emotion, this method will remove one feather each time and find the most possible emotion.
 Example:\par
 \bigskip
-\textit{Pruning Question}\par
+
+\subsection*{Pruning Question}
+The function $pruning\_example(x, y)$ takes two inputs: $x$ is an $n \times p$ matrix of features and $y$ is a $n$-dimensional vector of target variables.\par
 \bigskip
+It builds a classification tree and returns a figure with two curves, showing how classification cost changes with tree size (number of leaves). The figure also marks the smallest tree whose cost is within 1 standard error of the minimum cost.\par
+\bigskip
+The two curves correspond to two methods of computing classification costs.
+\begin{itemize}
+    \item Resubstitution: Tests a tree using the same data that was used to fit the tree (i.e. computes in-sample error)
+    \item 10-fold cross validation: See our explanation in the Implementation section earlier. Validation error is an out-of-sample error if we don't use it to tune a hyperparameter such as maximum depth, otherwise it's only an estimate of out-of-sample error.
+\end{itemize}
+
+\begin{figure} [hp!]
+\centering
+\includegraphics[width = 0.9 \textwidth] {pruneAnalysis/clean_data_analyse.png}
+\caption{Clean Data}
+\end{figure}
+
+\begin{figure} [hp!]
+\centering
+\includegraphics[width = 0.9 \textwidth] {pruneAnalysis/noisy_data_analyse.png}
+\caption{Noisy Data}
+\end{figure}
+
+In figures 1 and 2, we find that classification costs have similar behaviour on both clean and noisy data. Resubstitution error keeps falling as the tree gets larger, while validation error falls initially and then rises.\par
+\bigskip
+This is expected because a deeper tree will always fit a dataset better than a shallower tree. However if a tree is too deep, it will overfit the training data but fail to generalize to unseen data, which is manifested in the increasing validation error.\par
+\bigskip
+Differences between clean and noisy data:\par
+\bigskip
+For a fixed tree size, classification costs are higher on noisy data than clean data, obviously since noise makes it harder for a tree to fit the data.\par
+\bigskip
+The gap between resubstitution error and validation error rises faster for noisy data than clean data, which shows that overfitting is more serious when the data have noise.\par
+\bigskip
+Optimal tree size for clean data is $\approx 22$ leaves while that for noisy data is $\approx 22$ leaves.\par
+\bigskip
+
+The reasons for the difference are because the the noisy data contains more bad results than clean data, and with some conflict examples, so in this classification tree algorithm, the tree trained need more branches to cover each case, which means more terminal nodes than using clean data.\par
+Considering the cost, in the resubstitution case, the terminal costs of noisy data and clean data are almost equal to zero, but the noisy data set is a little bit higher than clean data, this is because the noisy data contain more conflict examples, which means the same attributes with different results.\par
+
+\newpage
+
+\section*{Tree Diagrams}
+Figure \ref{firstTree} to \ref{lastTree} are the trees trained on the entire clean dataset (1004 examples).
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=\textwidth]{treePics/angerTree.pdf}
+\caption{Anger Tree Visualization}
+\label{firstTree}
+\end{figure}
+\begin{figure}[h!]
+\centering
+\includegraphics[width=\textwidth]{treePics/disgustTree.pdf}
+\caption{Disgust Tree Visualization}
+\end{figure}
+\begin{figure}[h!]
+\centering
+\includegraphics[width=\textwidth]{treePics/fearTree.pdf}
+\caption{Fear Tree Visualization}
+\end{figure}
+\begin{figure}[!hb]
+\centering
+\includegraphics[width=\textwidth]{treePics/happinessTree.pdf}
+\caption{Happiness Tree Visualization}
+\end{figure}
+\begin{figure}[!hb]
+\centering
+\includegraphics[width=\textwidth]{treePics/sadnessTree.pdf}
+\caption{Sadness Tree Visualization}
+\end{figure}
+\begin{figure}[!hb]
+\centering
+\includegraphics[width=\textwidth]{treePics/surpriseTree.pdf}
+\caption{Surprise Tree Visualization}
+\label{lastTree}
+\end{figure}
 \end{document}
