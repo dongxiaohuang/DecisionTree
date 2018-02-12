@@ -11,4 +11,4 @@ To use the trees, invoke the method testTrees() as:
 
 predictions = testTrees(T, x2)
 
-where x2 should be two-dimensional numPy array of examples, and return value will also be one-dimension numPy array of labels.
+where x2 should be two-dimensional numPy array of examples, and return value will also be one-dimensional numPy array of labels.
