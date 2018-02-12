@@ -63,7 +63,7 @@ We used entropy since it is stated in the specification, but Gini impurity is fa
 N.B. The \textit{height} of those graphs is irrelevant because minimizing a function is equivalent to minimizing any positive multiple of that function. What matters is their \textit{shape}.\par
 \bigskip
 The decision tree algorithm is given in the specification, so it's unnecessary to repeat it here. We try to use NumPy functions instead of Python loops for performance since the former run on vectorized C code.\par
-\subsection*{Validation}
+\bigskip
 To evaluate our decision tree, we performed $K$-fold cross validation as follows:
 \begin{enumerate}
     \item Shuffle the dataset and split it into $K = 10$ parts
@@ -73,103 +73,133 @@ To evaluate our decision tree, we performed $K$-fold cross validation as follows
 \section*{Evaluation}
 Each cell of the confusion matrix is a total, not an average, over all folds of cross validation. There were $n = 1000$ test examples in total.\par
 \bigskip
-\textbf{Note}: It makes no sense to compute classification rate for each emotion separately. For example, if the actual emotion is Anger then (Fear, Surprise) counts as a true negative for Anger even though it's a misclassification!
-\bigskip
+\textbf{Warning}: It makes no sense to compute classification rate for each emotion separately. For example, if the actual emotion is Anger then (Fear, Surprise) counts as a true negative for Anger even though it's a misclassification!
+
 \subsection*{Clean Data}
 \begin{center}
 \begin{tabular} { C{2.7cm} | C{1.5cm} C{1.5cm} C{1.3cm} C{1.7cm} C{1.5cm} C{1.5cm} }
-\multirow{2}{*}{Actual Class} & \multicolumn{6}{c}{Predicted Class} \\
+    \multirow{2}{*}{Actual Class} & \multicolumn{6}{c}{Predicted Class} \\
     & Anger & Disgust & Fear & Happiness & Sadness & Surprise \\ \hline
-    Anger     & 106 &  11 &  3 &   5 &  5 &   1 \\
-    Disgust   &  23 & 157 &  1 &   5 &  9 &   3 \\
-    Fear      &  17 &   2 & 77 &   2 &  7 &  13 \\
-    Happiness &  22 &   6 &  1 & 179 &  6 &   1 \\
-    Sadness   &  34 &  11 &  3 &   4 & 78 &   2 \\
-    Surprise  &  27 &   3 &  7 &   4 &  4 & 161
+    Anger      & 97 &  16 &  3 &   4 &  9 &    2 \\
+    Disgust    & 19 & 159 &  1 &   7 &  9 &    3 \\
+    Fear       &  7 &   4 & 90 &   2 &  3 &   12 \\
+    Happiness  &  1 &  11 &  2 & 191 &  5 &    5 \\
+    Sadness    & 18 &  15 &  5 &   9 & 79 &    6 \\
+    Surprise   &  1 &   3 & 11 &   5 &  7 &  179
 \end{tabular}
 \end{center}
 We add up the relevant cells in the confusion matrix above to compute these summary statistics:
 \begin{center}
 \begin{tabular} { C{2.7cm} | C{1.5cm} C{1.5cm} C{1.3cm} C{1.7cm} C{1.5cm} C{1.5cm} }
     & Anger & Disgust & Fear & Happiness & Sadness & Surprise \\ \hline
-    Precision & 0.463 & 0.826 & 0.837 & 0.899 & 0.716 & 0.890 \\
-    Recall    & 0.809 & 0.793 & 0.653 & 0.833 & 0.591 & 0.782 \\
-    $F_1$ score & 0.589 & 0.809 & 0.733 & 0.865 & 0.647 & 0.832 \\
+    Precision & 0.678 & 0.764 & 0.804 & 0.876 & 0.705 & 0.865 \\
+    Recall    & 0.740 & 0.803 & 0.763 & 0.888 & 0.598 & 0.869 \\
+    $F_1$ score & 0.708 & 0.783 & 0.783 & 0.882 & 0.648 & 0.867 \\
+    -- & 0.920 & 0.912 & 0.950 & 0.949 & 0.914 & 0.945 \\
 \end{tabular}
-\[ \text{Classification rate} = \frac{106 + 157 + \dotsm + 161}{1000} = 0.758 \]
 \end{center}
+The last row in the table above is the ``classification rate'' of each emotion. As explained earlier, these figures are meaningless. Instead we compute the classification rate of all 6 trees as
+\[ \frac{97 + 159 + \dotsm + 179}{1000} = 0.795 \]
 
 \subsection*{Noisy Data}
 \begin{center}
 \begin{tabular} { C{2.7cm} | C{1.5cm} C{1.5cm} C{1.3cm} C{1.7cm} C{1.5cm} C{1.5cm} }
     \multirow{2}{*}{Actual Class} & \multicolumn{6}{c}{Predicted Class} \\
     & Anger & Disgust & Fear & Happiness & Sadness & Surprise \\ \hline
-    Anger     &  48 &   6 &  11 &   5 & 15 &   3 \\
-    Disgust   &  38 & 127 &   9 &   7 &  3 &   3 \\
-    Fear      &  42 &  10 & 108 &  13 &  7 &   7 \\
-    Happiness &  34 &   8 &   6 & 153 &  2 &   5 \\
-    Sadness   &  46 &   2 &   6 &   4 & 48 &   4 \\
-    Surprise  &  33 &   2 &  15 &   7 &  8 & 155
+    Anger     & 30 &  10 &  17 &   8 & 16 &   7 \\
+    Disgust   & 13 & 141 &  14 &  11 &  4 &   4 \\
+    Fear      & 12 &  15 & 116 &  21 &  8 &  15 \\
+    Happiness &  8 &  11 &  12 & 166 &  3 &   8 \\
+    Sadness   & 22 &  10 &   5 &   5 & 59 &   9 \\
+    Surprise  &  6 &   8 &  15 &  11 &  7 & 173
 \end{tabular}
 \end{center}
-Summary statistics:
+Summary statistics as before:
 \begin{center}
 \begin{tabular} { C{2.7cm} | C{1.5cm} C{1.5cm} C{1.3cm} C{1.7cm} C{1.5cm} C{1.5cm} }
     & Anger & Disgust & Fear & Happiness & Sadness & Surprise \\ \hline
-    Precision & 0.199 & 0.819 & 0.697 & 0.810 & 0.578 & 0.876 \\
-    Recall    & 0.545 & 0.679 & 0.577 & 0.736 & 0.436 & 0.705 \\
-    $F_1$ score & 0.292 & 0.743 & 0.631 & 0.771 & 0.497 & 0.781 \\
+    Precision & 0.330 & 0.723 & 0.648 & 0.748 & 0.608 & 0.801 \\
+    Recall    & 0.341 & 0.754 & 0.620 & 0.798 & 0.536 & 0.786 \\
+    $F_1$ score & 0.335 & 0.738 & 0.634 & 0.772 & 0.570 & 0.794 \\
+    -- & 0.881 & 0.900 & 0.866 & 0.902 & 0.911 & 0.910 \\
 \end{tabular}
 \end{center}
-\[ \text{Classification rate} = \frac{48 + 127 + \dotsm + 155}{1000} = 0.639 \]
+\[ \text{Classification rate} = \frac{30 + 141 + \dotsm + 173}{1000} = 0.685 \]
 The $F_\alpha$ score by van Rijsbergen (1975) is a harmonic mean of precision $P$ and recall $R$:
 \[ \frac{1 + \alpha^2}{F_\alpha} = \frac1P + \frac{\alpha^2}{R} \qquad
    \Rightarrow \qquad F_\alpha = \frac{(1+\alpha^2) PR}{\alpha^2 P + R} \]
 which allows us to adjust the weight given to precision or recall. This is useful if, for example, it's essential to detect Anger in an image when it's present. This averaging also enables $F_\alpha$ to deal with imbalanced classes.\par
 \bigskip
-On both noisy and clean data, our 6 trees classify the emotions \textit{Disgust}, \textit{Happiness} and \textit{Surprise} with high accuracy, while \textit{Anger} and \textit{Sadness} are harder to recognize.\par
+On clean data, our 6 trees classify the emotions \textit{Disgust}, \textit{Fear}, \textit{Happiness} and \textit{Surprise} with high accuracy ($F_1 > 0.78$) while \textit{Sadness} is harder to detect.\par
 \bigskip
-We also find that all emotions except \textit{Anger} are most often misclassified as Anger. This is because if none of our 6 trees detect an emotion in an image, then we classify it as \textit{Anger}.\par
+On noisy data, our 6 trees classify the emotions \textit{Disgust}, \textit{Happiness} and \textit{Surprise} with high accuracy ($F_1 > 0.73$) while \textit{Anger} and \textit{Sadness} are harder to recognize.\par
 \bigskip
-Moreover, the Facial Action Coding System in the specification has more rules that map to \textit{Anger} than to other emotions. This suggests that there are more ways for a face to express anger than other emotions, so images are likely to be classified as \textit{Anger}. However, this explanation isn't satisfactory since \textit{Fear} also has many rules, but not many images are misclassified as such.\par
+We expected emotions to be most frequently misclassified as \textit{Anger} because if none of our 6 trees detect any emotion in an image, then we classify it as \textit{Anger} by default. However this isn't evident from the confusion matrices.\par
+\bigskip
+Moreover, the Facial Action Coding System in the specification has more rules that map to \textit{Anger} than to other emotions. This suggests there are more ways for a face to express anger than other emotions, so images are likely to be classified as \textit{Anger}. However, this explanation isn't satisfactory since \textit{Fear} also has many rules, but not many images are misclassified as such.\par
 \bigskip
 We could have created another label ``No emotion'' for images that cannot be classified as any of the 6 emotions. However the specification requires our testTrees(...) function generate predictions in $\{1, \dotsm, 6\}$.
 
 \section*{Miscellaneous}
 \subsection*{Noisy-Clean Datasets Question}
-Not surprisingly, the noisy dataset has lower overall performance. Its classification rate is 0.639 compared to 0.758 for clean data. The conclusion is the same when we analyse each emotion separately: precision, recall and $F_1$ score are lower for noisy data.\par
+Overall performance:\par
+Not surprisingly, the noisy dataset has lower overall performance. Its classification rate is 0.639 compared to 0.758 for clean data.\par
+\bigskip
+Per emotion performance:\par
+The conclusion is the same when we analyse each emotion separately: precision, recall and $F_1$ score are lower for noisy data.\par
 \bigskip
 Noise degrades the classification accuracy of any machine learning model because it won't be learning the true underlying function that maps features to the target variable. For decision trees, this means taking many wrong branches to fit the noise.\par
 \bigskip
 Another intuition is that as noise in the data increases, the features that predict each emotion will become random, and so a decision tree will effectively be guessing randomly.\par
 \bigskip
-Among the 6 emotions, \textit{Anger} is most susceptible to noise because a fair number of noisy test examples will not be classified as having any of the 6 emotions, so it is labelled as \textit{Anger} by default. As a result, its $F_1$ score is 0.29 only.\par
-
+Among the 6 emotions, \textit{Anger} is most susceptible to noise because a fair number of noisy test examples will not be classified as having any of the 6 emotions, so it is labelled as \textit{Anger} by default. As a result, its $F_1$ score is 0.335 only.\par
+\bigskip
 \subsection*{Ambiguity Question}
 In case our 6 trees predict that a given image depicts more than one emotion, we considered several methods of selecting only one emotion:\par
 \bigskip
 1. Select the first detected emotion in alphabetical order\par
-Examples: If Fear and Surprise are detected, then we predict Fear. If no emotion is detected, then we predict Anger.\par
+\bigskip
+Examples: If \textit{Fear} and \textit{Surprise} are detected, then we predict \textit{Fear}. If no emotion is detected, then we predict \textit{Anger}.\par
+Advantage: Easy to implement\par
+Disadvantage: This method is arbitrary and will not improve the classification rate\par
 \bigskip
 2. Select by the depth of the tree\par
-If selected by the shorter tree:\par
+\bigskip
+If selected by the shorter tree, and priority gives to the shorter trees:\par
+Advantage: because the shorter tree that place more attributes with high information gain, in this case, it is more reliable. Compared with the larger tree, it has less subtle interaction between the attribute selection heuristic used by ID3 and less particular training examples which is difficult to be characterized.\par
+Disadvantage: this method does not improve the precision rate well. The method fully trust the tree trained by the training data, although some data maybe misleading and noisy and the tree would be incorrect.\par 
 If selected by the larger tree:\par
+This method is used to as control group\par
 \bigskip
 3. Disable each active unit in turn, and take a majority vote\par
-In this method, for example, if one collected data which contains 45 features in this project, and its actual result is one emotion. It can be said that if we remove one of the features (just as hiding part of the face)then the data should also be concluded to the actual emotion. In order to avoid removing the most important feature for the emotion, this method will remove one feather each time and find the most possible emotion.
-Example:\par
+\bigskip
+In this method, for example, if one collected data which contains 45 features in this project, and its actual result is one emotion. It can be said that if we remove one of the features (just as hiding part of the face) then the data should also be concluded to the actual emotion. In order to avoid removing the most important feature for the emotion, this method will remove one feather each time and find the most possible emotion.
+Advantage: this method will improve the classification rate a lot compare with the other 2 methods and this method allows some noisy attributes and perform well in the noisy data set.\par
+Disadvantage: When some test data that can not be evaluate into one of the labels, then the first label will be allocated, so the precision rate for \textit{Anger} will still be low.\par
+\bigskip
+Below is the performance of classification rate for the tree using 10-fold cross-validation trained by noisy and clean data.
+\begin{center}
+\begin{tabular} { C{4cm} | C{1.5cm} C{3cm} C{1.5cm} }
+    Classification Rate & Plan 1 & Plan 2 (shorter / larger) & Plan 3 \\ \hline
+    Clean Data     &0.726   &  & 0.795 \\
+    Noisy Data   &0.594   &  &  0.685  \\
+\end{tabular}
+\label{table}
+\end{center}
 \bigskip
 
 \subsection*{Pruning Question}
 The function $pruning\_example(x, y)$ takes two inputs: $x$ is an $n \times p$ matrix of features and $y$ is a $n$-dimensional vector of target variables.\par
 \bigskip
-It builds a classification tree and returns a figure with two curves, showing how classification cost changes with tree size (measured by number of leaves instead of depth). The figure also marks the smallest tree size whose cost is within 1 standard error of the minimum cost.\par
+It builds a classification tree and prunes it to various sizes (as measured by number of leaves instead of depth). It computes the classification cost for each tree size. Finally it returns a plot of classification cost against tree size, which also marks the smallest tree size whose cost is within 1 standard error of the minimum cost.\par
 \bigskip
-The two curves correspond to two methods of computing classification costs.
+The two curves in the plot correspond to two methods of computing classification costs.
 \begin{itemize}
     \item Resubstitution: Tests a tree using the same data that was used to fit the tree (i.e. computes in-sample error)
     \item 10-fold cross validation: See our explanation in the Implementation section earlier. Validation error is an out-of-sample error if we don't use it to tune a hyperparameter such as maximum depth, otherwise it's only an estimate of out-of-sample error.
 \end{itemize}
+
+This function not only use \textit{test} function to evaluate the bestLevel which is the levels needed to be pruned and 
 
 \begin{figure} [hp!]
 \centering
