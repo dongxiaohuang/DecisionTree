@@ -83,12 +83,11 @@ Choose the attribute with highest information gain
 @return                 - index of attribute with highest gain
 """
 def choose_best_attribute(examples, attributes, binary_targets):
-    best_gain = 0
-    best = attributes[0]
+    best_gain, best = 0, attributes[0]
     for attribute in attributes:
         temp_gain = gain(attribute, examples, binary_targets)
         if temp_gain > best_gain:
-            [best_gain, best] = [temp_gain, attribute]
+            best_gain, best = temp_gain, attribute
     return best
 
 """
@@ -138,7 +137,7 @@ def decision_tree_learning(examples, attributes, binary_targets, depth = 0):
     if len(set(binary_targets)) == 1:
         # print "leaf"
         return Node(kids = [], label = binary_targets[0])
-    elif not attributes or depth > 6:
+    elif not attributes or depth > 100:
         # print "leaf"
         return Node(kids = [], label = majority_value(binary_targets))
     else:
@@ -174,39 +173,51 @@ def highest_score(scores):
 
 """
 """
-def most_similar(T, features, labels):
-    if sum(labels) <= 1:
-        return labels.index(sum(labels)) + 1
-    scores = np.zeros(len(emotions)).tolist()
+def most_similar(T, features):
+    #if sum(labels) == 1:
+        #return labels.index(sum(labels)) + 1
+    scores = np.zeros(len(emotions), int).tolist()
     for i in range(len(features)):
-        if features[i] == 1:
-            features[i] = 0
-            for j in range(len(labels)):
-                if labels[j] == 1:
-                    new_label, depth = test_single_tree(T[j], features)
-                    scores[j] += new_label
-            features[i] = 1
+        #features[i] = (features[i] - 1) ** 2
+        #for k in range(i+1, len(features)):
+        #if features[i] == 1:
+        features[i] = 0 if features[i] == 1 else 1
+        for j in range(len(emotions)):
+                #if labels[j] == 1:
+            new_label, depth = test_single_tree(T[j], features)
+            scores[j] += new_label
+        features[i] = 0 if features[i] == 1 else 1
+        #features[i] = (features[i] - 1) ** 2
+    print "scores: ", scores
     return highest_score(scores)
 
 """
 """
-def testTrees(T, x2):
+def testTrees(T, x2, y):
     predictions = []
+    i = -1
     for x in x2:
+        i += 1
         scores, labels = [], []
         for tree in T:
             label, depth = test_single_tree(tree, x)
             labels.append(label)
-            if label == 0: depth = 0
+            #if label == 0: depth = 0
             scores.append(depth)
         # plan A
         #predictions.append(highest_score(labels))
 
         # plan B
+        #if sum(labels) > 1:
         #predictions.append(highest_score(scores))
 
         # plan C
-        predictions.append(most_similar(T, x, labels))
+        #if sum(labels) <= 1:
+        print "------"
+        print "labels: ", labels
+        #print "depth: ", scores
+        print "true: ", y[i]
+        predictions.append(most_similar(T, x))
 
     return np.array(predictions)
 
@@ -289,6 +300,8 @@ def n_fold(data, labels, n):
         testing_data = data[testing_data_index]
 
         result_test += [labels[i] for i in testing_data_index]
+        te = [labels[i] for i in testing_data_index]
+
         training_data = data[training_data_index]
         binary_targets_train = [labels[i] for i in training_data_index]
         # trai&val_data_index = [index for index in range(len(data)) if index not in testing_data_index]
@@ -307,10 +320,11 @@ def n_fold(data, labels, n):
             T.append(decision_tree_learning(training_data, attributes, t))
 
         # calculate the precision rate
-        predictx += (testTrees(T, testing_data).tolist())
+        predictx += testTrees(T, testing_data, te).tolist()
 
     con_mat = confusion_matrix(len(emotions), [predictx, result_test])
     avg_classfi_rate += classfi_rate(len(emotions), con_mat)
+    
     return avg_classfi_rate
 
 
@@ -319,64 +333,20 @@ def n_fold(data, labels, n):
 x, y = load_data("cleandata_students.mat")
 nx, ny = load_data("noisydata_students.mat")
 
-T = generate_trees(x, y)
-for index in range(len(T)):
-    tree_graph = build_tree(T[index])
-    treeName = e = emotions.keys()[emotions.values().index(index+1)]+'Tree'
-    g = treeviz(tree_graph, tree_name = treeName)
-    g.render(treeName,view=True)
+#T = generate_trees(x, y)
+
+#for index in range(len(T)):
+#    tree_graph = build_tree(T[index])
+#    treeName = e = emotions.keys()[emotions.values().index(index+1)]+'Tree'
+#    g = treeviz(tree_graph, tree_name = treeName)
+#    g.render(treeName,view=True)
 
 #output = open('Trees.pkl', 'wb')
 #pickle.dump(T, output)
 #output.close()
 
+#f = open('Trees.pkl', 'rb')
+#T = pickle.load(f)
+#print testTrees(T, nx)
+
 print n_fold(x, y, 10)
-
-"""
-anger_targets      = map_label(y[0:len(X)*9/10], "anger")
-disgust_targets    = map_label(y[0:len(X)*9/10], "disgust")
-fear_targets       = map_label(y[0:len(X)*9/10], "fear")
-happiness_targets  = map_label(y, "happiness")
-sadness_targets    = map_label(y[0:len(X)*9/10], "sadness")
-surprise_targets   = map_label(y[0:len(X)*9/10], "surprise")
-
-test = map_label(ny,"happiness")
-td = X[len(X)*9/10:len(X),:]
-vd = X[0:len(X)*9/10,:]
-
-anger_decision_tree     = decision_tree_learning(vd, attributes, anger_targets)
-disgust_decision_tree   = decision_tree_learning(vd, attributes, disgust_targets)
-fear_decision_tree      = decision_tree_learning(vd, attributes, fear_targets)
-happiness_decision_tree = decision_tree_learning(vd, attributes, happiness_targets)
-sadness_decision_tree   = decision_tree_learning(vd, attributes, sadness_targets)
-surprise_decision_tree  = decision_tree_learning(vd, attributes, surprise_targets)
-"""
-# calculate the precision rate
-# predictx =[]
-# T = [anger_decision_tree, disgust_decision_tree, fear_decision_tree,
-#         happiness_decision_tree, sadness_decision_tree, surprise_decision_tree]
-# for i in td:
-#     predictx.append(testTrees(T, i))
-#     """## TODO : fix bug
-#     if(classify_emotion(i)==None):
-#         predictx.append(0)
-#     else:
-#         predictx.append(classify_emotion(i))
-#     """
-# diff = (predictx - y[len(X)*9/10:len(X)])
-# print float(sum(x == 0 for x in diff))/len(diff)
-# predictx =[]
-# for i in nx:
-#     ## TODO : fix bug
-#     if(classify_emotion(i)==None):
-#         predictx.append(0)
-#     else:
-#         predictx.append(classify_emotion(i))
-# diff = (predictx - ny)
-# print float(sum(x == 0 for x in diff))/len(diff)
-# print classify_emotion(nx[342]),ny[342]
-# for i in X:
-#     print test_trees(sadness_decision_tree, X[1])
-
-# class1 = np.array([[0,1,2,0],[0,2,1,0]])
-# print confusion_matrix(3,class1)
