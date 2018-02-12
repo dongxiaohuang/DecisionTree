@@ -2,6 +2,7 @@ The six decision trees are stored in the file 'Trees.pkl'.
 
 To load the trees, read the file in python 2.7 as following:
 if pickle is not installed, please run :
+
 `pip install pickle`
 
 ```
