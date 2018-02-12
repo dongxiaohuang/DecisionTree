@@ -1,13 +1,16 @@
 The six decision trees are stored in the file 'Trees.pkl'. 
 
 To load the trees, read the file in python 2.7 as following:
+if pickle is not installed, please run :
+`pip install pickle`
+
 ```
 import pickle
 from decision_tree import *
 filename = open('Trees.pkl', 'rb')
 T = pickle.load(filename)
 ```
-where T will be a list of six tree roots.
+where T will be a list of roots of six trees.
 
 To use the trees, invoke the method testTrees() as:
 ```
