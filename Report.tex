@@ -12,22 +12,19 @@
 \newcommand\TS{\rule{0pt}{2.6ex}}         % Top strut
 \newcommand\BS{\rule[-0.9ex]{0pt}{0pt}}   % Bottom strut
 \usepackage{array, multirow}
-\newcolumntype{L}[1]{>{\raggedright\let\newline\\\TS\BS\arraybackslash}m{#1}}   % Align left
-\newcolumntype{C}[1]{>{\centering  \let\newline\\\TS\BS\arraybackslash}m{#1}}
-\newcolumntype{R}[1]{>{\raggedleft \let\newline\\\TS\BS\arraybackslash}m{#1}}   % Align right
+\newcolumntype{L}[1]{>{\raggedright\TS\BS\arraybackslash}m{#1}}   % Align left
+\newcolumntype{C}[1]{>{\centering  \TS\BS\arraybackslash}m{#1}}
+\newcolumntype{R}[1]{>{\raggedleft \TS\BS\arraybackslash}m{#1}}   % Align right
 % Equations
 \usepackage{amsmath, bm, bbold, tikz}
 
-\title{CO395 Group 57 \vspace{-1ex}}
+\title{\vspace{-6ex} CO395 Group 57 \vspace{-1ex}}
 \author{Dongxiao Huang, Zheng Xun Phang, Yufeng Zhang}
-\date{\vspace{-1.5ex}}
+\date{\vspace{-3ex}}
 
 \begin{document}
 \maketitle
 \section*{Implementation}
-\subsection*{Cross-validation}
-The entire training data set is divided by 10 to acquire the number of data in each fold of cross validation. Then for each round i of 10 times, the training data set is split into two sections. One called training data set is a set of data with indexes in the i$^{th}$ fold, and another called test data set is a set of data with indexes in the remaining 9 folds. The training data set is used as examples and binary targets to construct the decision tree, while the test data set as only examples in order to get the labels to compute error rate. Finally, an average error estimate is calculated by 10 error rates.
-\subsection*{Best-attribute selection}
 How do we select the best attribute at each node? For all attributes, we compute the information gain if the dataset is split on that attribute:
 \begin{align*}
     \text{Gain(Attribute)} &= \mathcal{I}(p, n) - \left[ \frac{p_0 + n_0}{p + n} \, \mathcal{I}(p_0, n_0) + \frac{p_1 + n_1}{p + n} \, \mathcal{I}(p_1, n_1) \right] \\[0.5ex]
@@ -66,7 +63,7 @@ We used entropy since it is stated in the specification, but Gini impurity is fa
 N.B. The \textit{height} of those graphs is irrelevant because minimizing a function is equivalent to minimizing any positive multiple of that function. What matters is their \textit{shape}.\par
 \bigskip
 The decision tree algorithm is given in the specification, so it's unnecessary to repeat it here. We try to use NumPy functions instead of Python loops for performance since the former run on vectorized C code.\par
-\bigskip
+\subsection*{Validation}
 To evaluate our decision tree, we performed $K$-fold cross validation as follows:
 \begin{enumerate}
     \item Shuffle the dataset and split it into $K = 10$ parts
@@ -76,7 +73,7 @@ To evaluate our decision tree, we performed $K$-fold cross validation as follows
 \section*{Evaluation}
 Each cell of the confusion matrix is a total, not an average, over all folds of cross validation. There were $n = 1000$ test examples in total.\par
 \bigskip
-\textbf{Note}: It makes no sense to compute classification rate for each emotion separately. For example, if the actual emotion is Anger then (Fear, Surprise) counts as a true negative for Anger even though it's a misclassification.
+\textbf{Note}: It makes no sense to compute classification rate for each emotion separately. For example, if the actual emotion is Anger then (Fear, Surprise) counts as a true negative for Anger even though it's a misclassification!
 \bigskip
 \subsection*{Clean Data}
 \begin{center}
@@ -128,41 +125,35 @@ Summary statistics:
 The $F_\alpha$ score by van Rijsbergen (1975) is a harmonic mean of precision $P$ and recall $R$:
 \[ \frac{1 + \alpha^2}{F_\alpha} = \frac1P + \frac{\alpha^2}{R} \qquad
    \Rightarrow \qquad F_\alpha = \frac{(1+\alpha^2) PR}{\alpha^2 P + R} \]
-which allows us to adjust the weight given to precision or recall. This is useful if, for example, it's essential to detect Anger in an image when it's present.\par
+which allows us to adjust the weight given to precision or recall. This is useful if, for example, it's essential to detect Anger in an image when it's present. This averaging also enables $F_\alpha$ to deal with imbalanced classes.\par
 \bigskip
-On both noisy and clean data, our 6 trees classify the emotions Disgust, Happiness and Surprise with high accuracy, while Anger and Sadness are harder to recognize.\par
+On both noisy and clean data, our 6 trees classify the emotions \textit{Disgust}, \textit{Happiness} and \textit{Surprise} with high accuracy, while \textit{Anger} and \textit{Sadness} are harder to recognize.\par
 \bigskip
-We also find that all emotions except Anger are most often misclassified as Anger. The FACS rules for mapping action units to emotions might offer some insights.
-\begin{center}
-\begin{tabular} { C{2cm} C{4cm} | C{2cm} C{4cm} }
-    Emotion & AUs & Emotion & AUs \\ \hline
-    Happiness \vfill & \{12\} \newline \{6, 12\} & \multirow{2}{*}{Fear} & \{1, 2, 4\} \\
-    Sadness \vfill & \{1, 4\} \newline \{1, 4, 11 || 15\} \newline \{1, 4, 15, 17\} \newline \{6, 15\} \newline \{11, 17\} & & \\
-    Surprise & \{1, 2, 5, 26 || 27\} & \multirow{2}{*}{Anger} & \{17, 24\} \\
-    Disgust & \{9, 10 || 17\} & & \\
-\end{tabular}
-\end{center}
+We also find that all emotions except \textit{Anger} are most often misclassified as Anger. This is because if none of our 6 trees detect an emotion in an image, then we classify it as \textit{Anger}.\par
+\bigskip
+Moreover, the Facial Action Coding System in the specification has more rules that map to \textit{Anger} than to other emotions. This suggests that there are more ways for a face to express anger than other emotions, so images are likely to be classified as \textit{Anger}. However, this explanation isn't satisfactory since \textit{Fear} also has many rules, but not many images are misclassified as such.\par
+\bigskip
+We could have created another label ``No emotion'' for images that cannot be classified as any of the 6 emotions. However the specification requires our testTrees(...) function generate predictions in $\{1, \dotsm, 6\}$.
 
 \section*{Miscellaneous}
-
 \subsection*{Noisy-Clean Datasets Question}
-\subsubsection*{Overall Performance}
-The noisy dataset has lower performance. The classification rate for tree trained by clean data using 10-fold method 0.758 while that is 0.639 for using noisy data. This is because noisy data have more conflict results and also by the UAR(0.744vs0.613), it can be concluded that using clean data results in a better performance. \par 
-
-From F1 distributions for that using clean data and noisy data, there are more imbalanced Test Set Conclusions when noisy data is used. This is because when using noisy data to test, the tree would give more result of all zeros, which means none of the emotion. By this case, the algorithm will judge that as \textit{Anger}, which is the first emotion in the classes. As a result, the F1 for \textit{Anger} is quite low.\par
-
-
-
-\subsubsection*{Per Emotion}
+Not surprisingly, the noisy dataset has lower overall performance. Its classification rate is 0.639 compared to 0.758 for clean data. The conclusion is the same when we analyse each emotion separately: precision, recall and $F_1$ score are lower for noisy data.\par
+\bigskip
+Noise degrades the classification accuracy of any machine learning model because it won't be learning the true underlying function that maps features to the target variable. For decision trees, this means taking many wrong branches to fit the noise.\par
+\bigskip
+Another intuition is that as noise in the data increases, the features that predict each emotion will become random, and so a decision tree will effectively be guessing randomly.\par
+\bigskip
+Among the 6 emotions, \textit{Anger} is most susceptible to noise because a fair number of noisy test examples will not be classified as having any of the 6 emotions, so it is labelled as \textit{Anger} by default. As a result, its $F_1$ score is 0.29 only.\par
 
 \subsection*{Ambiguity Question}
 In case our 6 trees predict that a given image depicts more than one emotion, we considered several methods of selecting only one emotion:\par
 \bigskip
-1. Select at random e.g. select the first emotion in alphabetical order\par
+1. Select the first detected emotion in alphabetical order\par
+Examples: If Fear and Surprise are detected, then we predict Fear. If no emotion is detected, then we predict Anger.\par
 \bigskip
 2. Select by the depth of the tree\par
 If selected by the shorter tree:\par
-If Selected by the larger tree:\par
+If selected by the larger tree:\par
 \bigskip
 3. Disable each active unit in turn, and take a majority vote\par
 In this method, for example, if one collected data which contains 45 features in this project, and its actual result is one emotion. It can be said that if we remove one of the features (just as hiding part of the face)then the data should also be concluded to the actual emotion. In order to avoid removing the most important feature for the emotion, this method will remove one feather each time and find the most possible emotion.
