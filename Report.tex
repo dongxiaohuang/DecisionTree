@@ -2,7 +2,6 @@
 \usepackage[margin = 2cm]{geometry}
 \usepackage{algorithm}
 \usepackage[noend]{algpseudocode}
-\usepackage[T1]{fontenc}   % Pipe symbol
 % Vertical text spacing
 \parindent = 0cm \parskip = 0cm
 % Section
@@ -13,9 +12,9 @@
 \newcommand\TS{\rule{0pt}{2.6ex}}         % Top strut
 \newcommand\BS{\rule[-0.9ex]{0pt}{0pt}}   % Bottom strut
 \usepackage{array, multirow}
-\newcolumntype{L}[1]{>{\raggedright\let\newline\\\TS\BS\arraybackslash}m{#1}}   % Align left
-\newcolumntype{C}[1]{>{\centering  \let\newline\\\TS\BS\arraybackslash}m{#1}}
-\newcolumntype{R}[1]{>{\raggedleft \let\newline\\\TS\BS\arraybackslash}m{#1}}   % Align right
+\newcolumntype{L}[1]{>{\raggedright\TS\BS\arraybackslash}m{#1}}   % Align left
+\newcolumntype{C}[1]{>{\centering  \TS\BS\arraybackslash}m{#1}}
+\newcolumntype{R}[1]{>{\raggedleft \TS\BS\arraybackslash}m{#1}}   % Align right
 % Equations
 \usepackage{amsmath, bm, bbold, tikz}
 
@@ -69,7 +68,7 @@ The decision tree algorithm is given in the specification, so it's unnecessary t
 To evaluate our decision tree, we performed $K$-fold cross validation as follows:
 \begin{enumerate}
     \item Shuffle the dataset and split it into $K = 10$ parts
-    \item For each $k \in \{1, \dotsm, K\}$ we train the decision tree on the dataset \textit{excluding} part $k$ and then test the decision tree on part $k$. During testing, we aggregate the predictions from 6 trees (more details later) and increment the relevant cells in the confusion matrix.
+    \item For each $k \in \{1, \dotsm, K\}$ we train the decision tree on the dataset \textit{excluding} part $k$ and then test the decision tree on part $k$. During testing, we aggregate the predictions from 6 trees (see Ambiguity Question) and increment the relevant cells in the confusion matrix.
 \end{enumerate}
 
 \section*{Evaluation}
@@ -82,12 +81,12 @@ Each cell of the confusion matrix is a total, not an average, over all folds of 
 \begin{tabular} { C{2.7cm} | C{1.5cm} C{1.5cm} C{1.3cm} C{1.7cm} C{1.5cm} C{1.5cm} }
     \multirow{2}{*}{Actual Class} & \multicolumn{6}{c}{Predicted Class} \\
     & Anger & Disgust & Fear & Happiness & Sadness & Surprise \\ \hline
-    Anger      & 97 &  16 &  3 &   4 &  9 &    2 \\
-    Disgust    & 19 & 159 &  1 &   7 &  9 &    3 \\
-    Fear       &  7 &   4 & 90 &   2 &  3 &   12 \\
-    Happiness  &  1 &  11 &  2 & 191 &  5 &    5 \\
-    Sadness    & 18 &  15 &  5 &   9 & 79 &    6 \\
-    Surprise   &  1 &   3 & 11 &   5 &  7 &  179
+    Anger     & 97 &  16 &  3 &   4 &  9 &    2 \\
+    Disgust   & 19 & 159 &  1 &   7 &  9 &    3 \\
+    Fear      &  7 &   4 & 90 &   2 &  3 &   12 \\
+    Happiness &  1 &  11 &  2 & 191 &  5 &    5 \\
+    Sadness   & 18 &  15 &  5 &   9 & 79 &    6 \\
+    Surprise  &  1 &   3 & 11 &   5 &  7 &  179
 \end{tabular}
 \end{center}
 We add up the relevant cells in the confusion matrix above to compute these summary statistics:
@@ -162,6 +161,7 @@ If no emotion is detected, then we predict \textit{Anger}. But if our 6 trees pr
 1. Select the first detected emotion in alphabetical order\par
 \bigskip
 Examples: If \textit{Fear} and \textit{Surprise} are detected, then we predict \textit{Fear}.\par
+\bigskip
 Advantage: Easy to implement\par
 Disadvantage: This method is arbitrary and will not improve the classification rate\par
 \bigskip
@@ -169,19 +169,28 @@ Disadvantage: This method is arbitrary and will not improve the classification r
 \bigskip
 Example: A face gets a positive result from our \textit{Anger} and \textit{Fear} trees. In the \textit{Anger} tree, the face belongs to a node that is 3 levels deep. In the \textit{Fear} tree, it belongs to a node that is 6 levels deep. We classify this face as \textit{Anger}.\par
 \bigskip
-Advantage: Compared with the deepest level, it has less subtle interaction between the attribute selection heuristic used by ID3 and less particular training examples which is difficult to be characterized.\par
-\bigskip
-Disadvantage: This method does not improve the precision rate well. The method fully trust the tree trained by the training data, although some data maybe misleading and noisy and the tree would be incorrect. Also it is assumed that six trees have the same depth where actually they do not.\par
+Advantage: This is more principled than method 1 and simpler than method 3. It may work well if a shallow tree is sufficient to fit the data, since it ignores deeper but overfitting trees.\par
+Disadvantage: It may not perform well if a deep tree is necessary, since it select the shallowest but underfitting tree.\par
 \bigskip
 2B. Select the emotion that was detected from the deepest node\par
 \bigskip
-This method contrasts with 2A above. It may not be reliable since deep nodes tend to be overfitting.\par
+This contrasts with method 2A above.\par
 \bigskip
-3. Toggle each feature unit in turn, and take a majority vote\par
+3. Toggle each action unit in turn and take a majority vote\par
 \bigskip
-The project adopts this method while combining the trees.\par
-One collected datum contains many features in this project, and its actual result is one emotion. It can be said that if we add or remove one of the features (just as hiding part of the face) then the data should also be concluded to the actual emotion. This method will toggle 1 of 45 feathers (0 to 1, 1 to 0) each time and score each emotion. Then the emotion with highest score (out of 45) is selected.\par
-The pseudo code for the method is as Algorithm 1:\\
+This is our preferred method. Its rationale is: adding or removing an action unit is akin to hiding a part of a face, which does not change its underlying emotion. Of course, if we change too many action units from present to absent or vice versa, then we cannot expect our trees to classify the face correctly. Hence, we only toggle one action unit at a time.\par
+\bigskip
+Example: A face has action units 3, 7, 12. It gets a positive result from our \textit{Anger} and \textit{Fear} trees. We disable each action unit in turn and test it on our 6 trees as follows.\par
+\begin{center}
+\begin{tabular} { C{3cm} C{3cm} }
+    Action Units & Result \\ \hline
+    7, 12 & Fear, Sadness \\
+    3, 12 & (none)        \\
+    3, 7  & Disgust, Fear \\
+\end{tabular}
+\end{center}
+Since \textit{Fear} is the most frequent result, it will be our prediction.
+
 \begin{algorithm}
 \caption{most\_similar(Tree, Features)}\label{euclid}
 \begin{algorithmic}[1]
@@ -200,24 +209,22 @@ The pseudo code for the method is as Algorithm 1:\\
 \label{code3}
 \end{algorithmic}
 \end{algorithm}
-\newpage
-Advantage - this method will improve the classification rate a lot comparing with the other 2 methods and this method allows some noisy attributes and performs well in the noisy data set.\par
-Disadvantage - When some test data that can not be evaluate into one of the labels, then the first label will be allocated, so the precision rate for \textit{Anger} will still be low.\par
-\bigskip
 
-Below is the performance of classification rate for the tree using 10-fold cross-validation trained by noisy and clean data.
+Advantage: This method has the best classification rate among the 3. It is robust to noise.\par
+Disadvantage: Test time increases with the number of action units.\par
+\bigskip
+The classification rates for the methods above are computed using 10-fold cross validation. The results are presented below.
 \begin{center}
-\begin{tabular} { C{4cm} | C{1.5cm} C{3.2cm} C{1.5cm} }
-    Classification Rate & Plan 1 & Plan 2 \newline (shallow / deep) & Plan 3 \\ \hline
-    Clean Data & 0.726 & 0.719 / 0.715 & 0.795 \\
-    Noisy Data & 0.594 & 0.610 / 0.595 & 0.685  \\
+\begin{tabular} { C{4cm} | C{1.5cm} C{1.5cm} C{1.5cm} C{1.5cm} }
+    Classification Rate & Plan 1 & Plan 2A & Plan 2B & Plan 3 \\ \hline
+    Clean Data & 0.726 & 0.719 & 0.715 & 0.795 \\
+    Noisy Data & 0.594 & 0.610 & 0.595 & 0.685  \\
 \end{tabular}
 \label{table}
 \end{center}
 
 \subsection*{Pruning Question}
 The function $pruning\_example(x, y)$ takes two inputs: $x$ is an $n \times p$ matrix of features and $y$ is a $n$-dimensional vector of target variables.\par
-
 \bigskip
 It builds a classification tree and prunes it to various sizes (as measured by number of leaves instead of depth). It computes the classification cost for each tree size. Finally it returns a plot of classification cost against tree size, which also marks the smallest tree size whose cost is within 1 standard error of the minimum cost.\par
 \bigskip
@@ -226,8 +233,6 @@ The two curves in the plot correspond to two methods of computing classification
     \item Resubstitution: Tests a tree using the same data that was used to fit the tree (i.e. computes in-sample error)
     \item 10-fold cross validation: See our explanation in the Implementation section earlier. Validation error is an out-of-sample error if we don't use it to tune a hyperparameter such as maximum depth, otherwise it's only an estimate of out-of-sample error.
 \end{itemize}
-
-This function not only use \textit{test} function to evaluate the bestLevel which is the levels needed to be pruned and 
 
 \begin{figure} [hp!]
 \centering
@@ -243,7 +248,7 @@ This function not only use \textit{test} function to evaluate the bestLevel whic
 \label{noisy}
 \end{figure}
 
-In figures \ref{clean} and \ref{noisy}, we find that classification costs have similar behaviour on both clean and noisy data. Resubstitution error keeps falling as the tree gets larger, while validation error falls initially and then rises.\par
+In figures \ref{clean} and \ref{noisy}, we find that classification costs have similar behaviour on both clean and noisy data: Resubstitution error keeps falling as the tree gets larger, while validation error falls initially and then rises.\par
 \bigskip
 This is expected because a deeper tree will always fit a dataset better than a shallower tree. However if a tree is too deep, it will overfit the training data but fail to generalize to unseen data, which is manifested in the increasing validation error.\par
 \bigskip
